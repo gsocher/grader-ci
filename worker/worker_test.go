@@ -16,7 +16,7 @@ func TestRunBuild(t *testing.T) {
 	}
 
 	task := &BuildTask{
-		Language: "go",
+		Language: "test",
 		CloneURL: "github.com/dpolansky/go-poet",
 		Ctx:      context.Background(),
 		ID:       uuid.New().String(),
@@ -32,4 +32,23 @@ func TestRunBuild(t *testing.T) {
 	}
 }
 
-type mockDockerClient struct{}
+func TestGetImageForLanguage(t *testing.T) {
+	var tests = []struct {
+		language    string
+		expectedImg string
+	}{
+		{"golang", "build-golang"},
+		{"test", "build-test"},
+	}
+
+	for _, test := range tests {
+		img, err := getImageForLanguage(test.language)
+		if err != nil {
+			t.Fatalf("error getting image for language %v: %v", test.language, err)
+		}
+
+		if img != test.expectedImg {
+			t.Fatalf("Expected %v, got %v", test.expectedImg, img)
+		}
+	}
+}

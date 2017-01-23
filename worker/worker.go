@@ -168,10 +168,12 @@ func (w *Worker) copyToContainer(srcPath, containerID, dstPath string) error {
 	return w.dockerClient.CopyToContainer(context.Background(), containerID, dstDir, preparedArchive, types.CopyToContainerOptions{})
 }
 
+// getImageForLanguage checks that a given language has a directory in build/ containing its
+// build image and returns the name of the image.
 func getImageForLanguage(language string) (string, error) {
-	return "build-golang", nil
+	return fmt.Sprintf("build-%v", language), nil
 }
 
 func getBuildScriptPathForLanguage(language string) (string, error) {
-	return filepath.Abs("./build/golang/build.sh")
+	return filepath.Abs(fmt.Sprintf("./build/%v/build.sh", language))
 }
