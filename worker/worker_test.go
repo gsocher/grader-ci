@@ -1,9 +1,10 @@
 package worker
 
 import (
-	"bytes"
 	"context"
 	"testing"
+
+	"os"
 
 	"github.com/google/uuid"
 )
@@ -21,13 +22,14 @@ func TestRunBuild(t *testing.T) {
 		ID:       uuid.New().String(),
 	}
 
-	output := bytes.NewBuffer(nil)
-	exitCode, err := w.RunBuild(task, output)
+	exitCode, err := w.RunBuild(task, os.Stdout)
 	if err != nil {
 		t.Fatalf("Build failed, err=%v", err)
 	}
 
 	if exitCode != 0 {
-		t.Fatalf("Running build script failed, output=%v", output)
+		t.Fatalf("Running build script failed")
 	}
 }
+
+type mockDockerClient struct{}

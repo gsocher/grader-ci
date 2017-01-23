@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REPO="github.com/dpolansky/go-poet"
+REPO=$1
 
 export GOPATH=$HOME
 go get -v $REPO
