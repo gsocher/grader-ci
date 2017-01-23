@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"path"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -175,5 +177,11 @@ func getImageForLanguage(language string) (string, error) {
 }
 
 func getBuildScriptPathForLanguage(language string) (string, error) {
-	return filepath.Abs(fmt.Sprintf("./build/%v/build.sh", language))
+	// get current directory
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		return "", fmt.Errorf("Failed to get current directory, this should not happen")
+	}
+
+	return filepath.Abs(fmt.Sprintf("%v/build/%v/build.sh", path.Dir(filename), language))
 }
