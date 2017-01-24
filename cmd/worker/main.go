@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 
 	"github.com/dpolansky/ci/worker"
@@ -50,7 +49,7 @@ func main() {
 	)
 	failOnError(err, "Failed to register a consumer")
 
-	w, err := worker.NewWorker()
+	w, err := worker.New()
 	failOnError(err, "Failed to create worker")
 
 	log.Infof("Waiting for build tasks")
@@ -62,8 +61,6 @@ func main() {
 			if err != nil {
 				log.WithError(err).Errorf("Failed to unmarshal task")
 			}
-
-			task.Ctx = context.Background()
 
 			log.WithFields(logrus.Fields{
 				"id":       task.ID,
