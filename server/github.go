@@ -16,6 +16,7 @@ type githubWebhookRequest struct {
 	} `json:"repository"`
 }
 
+// parseWebhookHTTPHandler is an endpoint for receiving github webhook requests.
 func parseWebhookHTTPHandler(rw http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
