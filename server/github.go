@@ -19,25 +19,21 @@ type githubWebhookRequest struct {
 func parseWebhookHTTPHandler(rw http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		rw.Write([]byte(err.Error()))
+		writeError(rw, http.StatusBadRequest, err)
 		return
 	}
 
 	var r githubWebhookRequest
 	if err = json.Unmarshal(body, &r); err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		rw.Write([]byte(err.Error()))
+		writeError(rw, http.StatusBadRequest, err)
 		return
 	}
 
 	b, err := json.Marshal(r)
 	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		rw.Write([]byte(err.Error()))
+		writeError(rw, http.StatusInternalServerError, err)
 		return
 	}
 
-	rw.Header().Set("Content-Type", "application/json")
-	rw.Write(b)
+	writeOk(rw, b)
 }
