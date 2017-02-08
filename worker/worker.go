@@ -3,12 +3,15 @@ package worker
 import (
 	"fmt"
 	"io"
-	"path"
 	"path/filepath"
-	"runtime"
+
+	"os"
 
 	"github.com/sirupsen/logrus"
 )
+
+// Build directory containing docker images/build scripts relative to GOPATH
+const buildDir = "src/github.com/dpolansky/ci/worker/build"
 
 type BuildTask struct {
 	Language string
@@ -20,7 +23,7 @@ type Worker struct {
 	dockerClient DockerClient
 }
 
-// NewWorker constructs a new worker and initializes a docker client.
+// New constructs a new worker and initializes a docker client.
 func New() (*Worker, error) {
 	dockerClient, err := newDockerClient()
 	if err != nil {
@@ -80,7 +83,7 @@ func getImageForLanguage(language string) (string, error) {
 }
 
 func getBuildScriptPathForLanguage(language string) (string, error) {
-	// get current directory
-	_, filename, _, _ := runtime.Caller(0)
-	return filepath.Abs(fmt.Sprintf("%v/build/%v/build.sh", path.Dir(filename), language))
+	gopath := os.Getenv("GOPATH")
+	path := filepath.Join(gopath, buildDir, language, "build.sh")
+	return filepath.Abs(path)
 }

@@ -1,0 +1,10 @@
+rest api
+    - endpoints
+        - receiving git webhook to start jobs
+        - registering repositories (webhook endpoint will validate that it is a registered repo)
+        - checking state of a job (status, log output, time?)
+
+
+worker process
+    - clone target repo first and then copy it over so i can parse configuration file
+    - add more languages (probably java, ruby, c first)
