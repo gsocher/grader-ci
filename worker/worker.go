@@ -7,6 +7,7 @@ import (
 
 	"os"
 
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -37,6 +38,7 @@ func New() (*Worker, error) {
 
 // runBuild runs a given BuildTask and streams its output to a writer.
 func (w *Worker) RunBuild(b *BuildTask, wr io.Writer) error {
+	b.ID = uuid.New().String()
 	logrus.WithFields(logrus.Fields{
 		"id":       b.ID,
 		"lang":     b.Language,
