@@ -49,4 +49,5 @@ func (s *Server) Serve() {
 
 func (s *Server) registerRoutes() {
 	s.registerGithubWebhookRoutes()
+	s.registerBuildStatusRoutes()
 }

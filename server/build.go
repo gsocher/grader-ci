@@ -18,7 +18,7 @@ import (
 // BuildService represents the logic for starting and checking the status of builds.
 type BuildService interface {
 	StartBuild(cloneURL string) (*model.BuildStatus, error)
-	GetStatusForBuild(id string) *model.BuildStatus
+	GetStatusForBuild(id string) (*model.BuildStatus, error)
 	UpdateStatusForBuild(build *model.BuildStatus) *model.BuildStatus
 	ListenForUpdates()
 }
@@ -84,10 +84,16 @@ func (b *buildService) StartBuild(cloneURL string) (*model.BuildStatus, error) {
 	return build, nil
 }
 
-func (b *buildService) GetStatusForBuild(id string) *model.BuildStatus {
+func (b *buildService) GetStatusForBuild(id string) (*model.BuildStatus, error) {
 	b.lock.Lock()
 	defer b.lock.Unlock()
-	return b.builds[id]
+
+	status, found := b.builds[id]
+	if !found {
+		return nil, fmt.Errorf("No build found with id %v", id)
+	}
+
+	return status, nil
 }
 
 func (b *buildService) UpdateStatusForBuild(build *model.BuildStatus) *model.BuildStatus {
