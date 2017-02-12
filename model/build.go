@@ -15,4 +15,5 @@ type BuildStatus struct {
 	Language   string    `json: "language"`
 	CloneURL   string    `json: "cloneURL"`
 	Status     string    `json: "status"`
+	Log        string    `json: "log"`
 }

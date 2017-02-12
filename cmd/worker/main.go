@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
 
 	"github.com/dpolansky/ci/model"
 	"github.com/dpolansky/ci/worker"
@@ -45,17 +47,23 @@ func main() {
 
 		// set status to running and send an update
 		build.Status = model.StatusBuildRunning
-		bytes, _ := json.Marshal(&build)
-		client.SendToQueue(model.AMQPStatusQueue, bytes)
+		byt, _ := json.Marshal(&build)
+		client.SendToQueue(model.AMQPStatusQueue, byt)
 
-		if err := w.RunBuild(&build, os.Stdout); err != nil {
+		buf := &bytes.Buffer{}
+		io.Copy(os.Stdout, buf)
+
+		if err := w.RunBuild(&build, buf); err != nil {
 			build.Status = model.StatusBuildFailed
 		} else {
 			build.Status = model.StatusBuildPassed
 		}
 
-		bytes, _ = json.Marshal(&build)
-		client.SendToQueue(model.AMQPStatusQueue, bytes)
+		build.Log = buf.String()
+
+		// send passed/failed status and log
+		byt, _ = json.Marshal(&build)
+		client.SendToQueue(model.AMQPStatusQueue, byt)
 	}
 
 	die := make(chan struct{})
