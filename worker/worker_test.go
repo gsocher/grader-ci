@@ -5,6 +5,7 @@ import (
 
 	"os"
 
+	"github.com/dpolansky/ci/model"
 	"github.com/google/uuid"
 )
 
@@ -14,7 +15,7 @@ func TestRunBuild(t *testing.T) {
 		t.Fatalf("Failed to create worker, err=%v", err)
 	}
 
-	task := &BuildTask{
+	task := &model.BuildStatus{
 		Language: "test",
 		CloneURL: "github.com/dpolansky/go-poet",
 		ID:       uuid.New().String(),

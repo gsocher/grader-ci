@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 
+	"github.com/dpolansky/ci/model"
 	"github.com/dpolansky/ci/worker"
 	"github.com/sirupsen/logrus"
 
@@ -27,22 +28,22 @@ func main() {
 	w, err := worker.New()
 	failOnError(err, "Failed to create worker")
 
-	log.Infof("Waiting for build tasks")
+	log.Infof("Waiting for builds")
 
 	callback := func(m amqpAPI.Delivery) {
-		var task worker.BuildTask
-		err := json.Unmarshal(m.Body, &task)
+		var build model.BuildStatus
+		err := json.Unmarshal(m.Body, &build)
 		if err != nil {
-			log.WithError(err).Errorf("Failed to unmarshal task")
+			log.WithError(err).Errorf("Failed to unmarshal build")
 		}
 
 		log.WithFields(logrus.Fields{
-			"id":       task.ID,
-			"cloneURL": task.CloneURL,
-			"lang":     task.Language,
-		}).Infof("Received task")
+			"id":       build.ID,
+			"cloneURL": build.CloneURL,
+			"lang":     build.Language,
+		}).Infof("Received build")
 
-		w.RunBuild(&task, os.Stdout)
+		w.RunBuild(&build, os.Stdout)
 	}
 
 	die := make(chan struct{})

@@ -9,12 +9,13 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/archive"
+	"github.com/dpolansky/ci/model"
 )
 
 // DockerClient is an interface for docker client functionality
 type DockerClient interface {
 	StartContainer(image string, name string) (string, error)
-	RunBuild(containerID, pathToBuildScript string, task *BuildTask, wr io.Writer) error
+	RunBuild(containerID, pathToBuildScript string, build *model.BuildStatus, wr io.Writer) error
 	StopContainer(containerID string) error
 }
 
@@ -59,14 +60,14 @@ func (d *dClient) StartContainer(image string, name string) (string, error) {
 	return container.ID, nil
 }
 
-func (d *dClient) RunBuild(containerID, pathToBuildScript string, task *BuildTask, wr io.Writer) error {
+func (d *dClient) RunBuild(containerID, pathToBuildScript string, build *model.BuildStatus, wr io.Writer) error {
 	err := d.copyToContainer(pathToBuildScript, containerID, "/home/ci")
 	if err != nil {
 		return err
 	}
 
 	execCfg := types.ExecConfig{
-		Cmd:          []string{"bash", "-x", "/home/ci/build.sh", task.CloneURL},
+		Cmd:          []string{"bash", "-x", "/home/ci/build.sh", build.CloneURL},
 		AttachStdout: true,
 		AttachStderr: true,
 		Tty:          true,

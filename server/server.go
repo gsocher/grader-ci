@@ -10,8 +10,8 @@ import (
 )
 
 type Server struct {
-	Router     *mux.Router
-	amqpClient amqp.ReadWriter
+	Router       *mux.Router
+	BuildService BuildService
 }
 
 func New() (*Server, error) {
@@ -21,9 +21,12 @@ func New() (*Server, error) {
 		return nil, fmt.Errorf("Failed to initialize amqp client: %v", err)
 	}
 
+	// init build service
+	buildService := NewBuildService(client)
+
 	s := &Server{
-		Router:     mux.NewRouter(),
-		amqpClient: client,
+		Router:       mux.NewRouter(),
+		BuildService: buildService,
 	}
 
 	// register routes

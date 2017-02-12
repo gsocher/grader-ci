@@ -7,18 +7,13 @@ import (
 
 	"os"
 
+	"github.com/dpolansky/ci/model"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
 // Build directory containing docker images/build scripts relative to GOPATH
 const buildDir = "src/github.com/dpolansky/ci/worker/build"
-
-type BuildTask struct {
-	Language string
-	CloneURL string
-	ID       string
-}
 
 type Worker struct {
 	dockerClient DockerClient
@@ -37,7 +32,7 @@ func New() (*Worker, error) {
 }
 
 // runBuild runs a given BuildTask and streams its output to a writer.
-func (w *Worker) RunBuild(b *BuildTask, wr io.Writer) error {
+func (w *Worker) RunBuild(b *model.BuildStatus, wr io.Writer) error {
 	b.ID = uuid.New().String()
 	logrus.WithFields(logrus.Fields{
 		"id":       b.ID,
