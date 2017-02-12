@@ -12,15 +12,15 @@ import (
 	"github.com/dpolansky/ci/server/amqp"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	amqpAPI "github.com/streadway/amqp"
 )
-
-const queueName = "jobs"
 
 // BuildService represents the logic for starting and checking the status of builds.
 type BuildService interface {
 	StartBuild(cloneURL string) (*model.BuildStatus, error)
 	GetStatusForBuild(id string) *model.BuildStatus
 	UpdateStatusForBuild(build *model.BuildStatus) *model.BuildStatus
+	ListenForUpdates()
 }
 
 type buildService struct {
@@ -43,7 +43,18 @@ func NewBuildService(amqpClient amqp.ReadWriter) BuildService {
 }
 
 func (b *buildService) ListenForUpdates() {
+	b.log.Infof("Listening for status updates")
 
+	b.amqpClient.ReadFromQueueWithCallback(model.AMQPStatusQueue, func(m amqpAPI.Delivery) {
+		var build model.BuildStatus
+		err := json.Unmarshal(m.Body, &build)
+		if err != nil {
+			b.log.WithError(err).WithField("body", string(m.Body)).Errorf("Failed to unmarshal status update")
+			return
+		}
+
+		b.UpdateStatusForBuild(&build)
+	}, nil)
 }
 
 func (b *buildService) StartBuild(cloneURL string) (*model.BuildStatus, error) {
@@ -62,7 +73,7 @@ func (b *buildService) StartBuild(cloneURL string) (*model.BuildStatus, error) {
 		return nil, fmt.Errorf("Failed to marshal build to bytes: %v", err)
 	}
 
-	err = b.amqpClient.SendToQueue(queueName, bytes)
+	err = b.amqpClient.SendToQueue(model.AMQPBuildQueue, bytes)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to send build to queue: %v", err)
 	}

@@ -43,11 +43,23 @@ func main() {
 			"lang":     build.Language,
 		}).Infof("Received build")
 
-		w.RunBuild(&build, os.Stdout)
+		// set status to running and send an update
+		build.Status = model.StatusBuildRunning
+		bytes, _ := json.Marshal(&build)
+		client.SendToQueue(model.AMQPStatusQueue, bytes)
+
+		if err := w.RunBuild(&build, os.Stdout); err != nil {
+			build.Status = model.StatusBuildFailed
+		} else {
+			build.Status = model.StatusBuildPassed
+		}
+
+		bytes, _ = json.Marshal(&build)
+		client.SendToQueue(model.AMQPStatusQueue, bytes)
 	}
 
 	die := make(chan struct{})
-	client.ReadFromQueueWithCallback("jobs", callback, die)
+	client.ReadFromQueueWithCallback(model.AMQPBuildQueue, callback, die)
 
 	select {}
 }
