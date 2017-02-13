@@ -1,0 +1,8 @@
+# start vagrant vm
+vagrant up
+
+# forward http traffic on 8080 -> 8081 on vm
+ssh -p 2222 -gNfL 8080:localhost:8081 vagrant@localhost -i ~/.vagrant.d/insecure_private_key
+
+# ngrok
+ngrok http 8080
