@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/dpolansky/ci/server/amqp"
@@ -14,16 +13,8 @@ type Server struct {
 	BuildService BuildService
 }
 
-func New() (*Server, error) {
-	// init amqp client
-	client, err := amqp.NewClient("amqp://guest:guest@localhost:5672/")
-	if err != nil {
-		return nil, fmt.Errorf("Failed to initialize amqp client: %v", err)
-	}
-
-	// init build service
-	buildService := NewBuildService(client)
-
+// New initializes a server with its dependencies and registers its routes.
+func New(amqpClient amqp.ReadWriter, buildService BuildService) (*Server, error) {
 	s := &Server{
 		Router:       mux.NewRouter(),
 		BuildService: buildService,

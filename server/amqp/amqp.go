@@ -119,3 +119,18 @@ func (c *amqpClient) ReadFromQueueWithCallback(queueName string, callback func(a
 		}
 	}
 }
+
+func NewMockClient() ReadWriter {
+	return &mockClient{}
+}
+
+type mockClient struct {
+}
+
+func (m *mockClient) SendToQueue(queueName string, b []byte) error {
+	return nil
+}
+
+func (m *mockClient) ReadFromQueueWithCallback(queueName string, callback func(amqp.Delivery), die chan struct{}) error {
+	return nil
+}
