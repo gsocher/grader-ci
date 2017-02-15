@@ -8,11 +8,11 @@ import (
 	"github.com/dpolansky/ci/model"
 	"github.com/dpolansky/ci/worker"
 	"github.com/sirupsen/logrus"
+	"github.com/streadway/amqp"
 
 	"os"
 
-	"github.com/dpolansky/ci/server/amqp"
-	amqpAPI "github.com/streadway/amqp"
+	"github.com/dpolansky/ci/server/service"
 )
 
 func failOnError(err error, msg string) {
@@ -24,7 +24,7 @@ func failOnError(err error, msg string) {
 func main() {
 	log := logrus.New()
 
-	client, err := amqp.NewClient("amqp://guest:guest@localhost:5672/")
+	client, err := service.NewAMQPClient("amqp://guest:guest@localhost:5672/")
 	failOnError(err, "Failed to create AMQP client")
 
 	w, err := worker.New()
@@ -32,7 +32,7 @@ func main() {
 
 	log.Infof("Waiting for builds")
 
-	callback := func(m amqpAPI.Delivery) {
+	callback := func(m amqp.Delivery) {
 		var build model.BuildStatus
 		err := json.Unmarshal(m.Body, &build)
 		if err != nil {

@@ -5,13 +5,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/dpolansky/ci/server/amqp"
+	"github.com/dpolansky/ci/server/service"
 )
 
 func TestGetStatus(t *testing.T) {
-	amqpClient := amqp.NewMockClient()
-	buildService := NewBuildService(amqpClient)
-	s, err := New(amqpClient, buildService)
+	amqpClient := service.NewMockClient()
+	builder := service.NewBuilder(amqpClient)
+	s, err := New(builder)
 	if err != nil {
 		t.Fatalf("Failed to initialize server: %v", err)
 	}
@@ -20,7 +20,7 @@ func TestGetStatus(t *testing.T) {
 	defer ts.Close()
 
 	// add a status to the build service
-	status, err := buildService.StartBuild("github.com/docker/docker")
+	status, err := builder.StartBuild("github.com/docker/docker")
 	if err != nil {
 		t.Fatalf("Failed to start build: %v", err)
 	}
@@ -37,9 +37,9 @@ func TestGetStatus(t *testing.T) {
 }
 
 func TestGetStatusNotFound(t *testing.T) {
-	amqpClient := amqp.NewMockClient()
-	buildService := NewBuildService(amqpClient)
-	s, err := New(amqpClient, buildService)
+	amqpClient := service.NewMockClient()
+	builder := service.NewBuilder(amqpClient)
+	s, err := New(builder)
 	if err != nil {
 		t.Fatalf("Failed to initialize server: %v", err)
 	}

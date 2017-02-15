@@ -1,4 +1,4 @@
-package amqp
+package service
 
 import (
 	"fmt"
@@ -6,24 +6,14 @@ import (
 	"github.com/streadway/amqp"
 )
 
-// ReadWriter can read from and write to AMQP queues.
-type ReadWriter interface {
-	Reader
-	Writer
-}
-
-// Reader can read from AMQP queues.
-type Reader interface {
+// Messenger can read from and write to AMQP queues.
+type Messenger interface {
 	ReadFromQueueWithCallback(queueName string, callback func(amqp.Delivery), die chan struct{}) error
-}
-
-// Writer can add to AMQP queues.
-type Writer interface {
 	SendToQueue(queueName string, b []byte) error
 }
 
-// NewClient creates a new AMQP client and creates a connection with the given URL
-func NewClient(url string) (ReadWriter, error) {
+// NewAMQPClient creates a new AMQP client and creates a connection with the given URL
+func NewAMQPClient(url string) (Messenger, error) {
 	conn, err := amqp.Dial(url)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to dial amqp: %v", err)
@@ -120,7 +110,7 @@ func (c *amqpClient) ReadFromQueueWithCallback(queueName string, callback func(a
 	}
 }
 
-func NewMockClient() ReadWriter {
+func NewMockClient() Messenger {
 	return &mockClient{}
 }
 

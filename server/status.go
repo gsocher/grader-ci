@@ -5,26 +5,27 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/dpolansky/ci/server/service"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
 
-const PathTokenBuildID = "build_id"
+const pathTokenBuildID = "build_id"
 
 func (s *Server) registerBuildStatusRoutes() {
-	s.Router.HandleFunc("/status/{"+PathTokenBuildID+"}", getBuildStatusHTTPHandler(s.BuildService)).Methods("GET")
+	s.Router.HandleFunc("/status/{"+pathTokenBuildID+"}", getBuildStatusHTTPHandler(s.Builder)).Methods("GET")
 }
 
-func getBuildStatusHTTPHandler(buildService BuildService) func(rw http.ResponseWriter, req *http.Request) {
+func getBuildStatusHTTPHandler(builder service.Builder) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
-		id, found := vars[PathTokenBuildID]
+		id, found := vars[pathTokenBuildID]
 		if !found {
 			writeError(rw, http.StatusBadRequest, fmt.Errorf("No build ID specified"))
 			return
 		}
 
-		status, err := buildService.GetStatusForBuild(id)
+		status, err := builder.GetStatusForBuild(id)
 		if err != nil {
 			writeError(rw, http.StatusNotFound, err)
 			return

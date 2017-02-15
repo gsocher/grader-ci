@@ -6,11 +6,12 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/dpolansky/ci/server/service"
 	"github.com/sirupsen/logrus"
 )
 
 func (s *Server) registerGithubWebhookRoutes() {
-	s.Router.HandleFunc("/github", parseWebhookHTTPHandler(s.BuildService)).Methods("POST")
+	s.Router.HandleFunc("/github", parseWebhookHTTPHandler(s.Builder)).Methods("POST")
 }
 
 type githubWebhookRequest struct {
@@ -20,7 +21,7 @@ type githubWebhookRequest struct {
 }
 
 // parseWebhookHTTPHandler is an endpoint for receiving github webhook requests.
-func parseWebhookHTTPHandler(buildService BuildService) func(rw http.ResponseWriter, req *http.Request) {
+func parseWebhookHTTPHandler(builder service.Builder) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
@@ -37,7 +38,7 @@ func parseWebhookHTTPHandler(buildService BuildService) func(rw http.ResponseWri
 		}
 
 		cloneURL := fmt.Sprintf("github.com/%s", r.Repository.FullName)
-		status, err := buildService.StartBuild(cloneURL)
+		status, err := builder.StartBuild(cloneURL)
 		if err != nil {
 			logrus.WithError(err).WithField("req", string(body)).Errorf("Failed to start build")
 			writeError(rw, http.StatusInternalServerError, err)

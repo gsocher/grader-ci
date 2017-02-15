@@ -3,21 +3,21 @@ package server
 import (
 	"net/http"
 
-	"github.com/dpolansky/ci/server/amqp"
+	"github.com/dpolansky/ci/server/service"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
 
 type Server struct {
-	Router       *mux.Router
-	BuildService BuildService
+	Router  *mux.Router
+	Builder service.Builder
 }
 
 // New initializes a server with its dependencies and registers its routes.
-func New(amqpClient amqp.ReadWriter, buildService BuildService) (*Server, error) {
+func New(builder service.Builder) (*Server, error) {
 	s := &Server{
-		Router:       mux.NewRouter(),
-		BuildService: buildService,
+		Router:  mux.NewRouter(),
+		Builder: builder,
 	}
 
 	// register routes
@@ -33,7 +33,7 @@ func (s *Server) Serve() {
 	}
 
 	logrus.Infof("Starting server on %v", serv.Addr)
-	go s.BuildService.ListenForUpdates()
+	go s.Builder.ListenForUpdates()
 
 	logrus.Fatalf("Server shut down: %v\n", serv.ListenAndServe())
 }
