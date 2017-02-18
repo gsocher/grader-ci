@@ -62,7 +62,6 @@ func (b *buildService) StartBuild(cloneURL string) (*model.BuildStatus, error) {
 	build := &model.BuildStatus{
 		ID:         id,
 		CloneURL:   cloneURL,
-		Language:   "golang", // TODO: eventually clone into the URL and parse a config file to read the language
 		LastUpdate: time.Now(),
 		Status:     model.StatusBuildWaiting,
 	}

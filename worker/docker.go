@@ -15,8 +15,9 @@ import (
 // DockerClient is an interface for docker client functionality
 type DockerClient interface {
 	StartContainer(image string, name string) (string, error)
-	RunBuild(containerID, pathToBuildScript string, build *model.BuildStatus, wr io.Writer) error
+	RunBuild(build *model.BuildStatus, repoDir string, wr io.Writer) error
 	StopContainer(containerID string) error
+	CopyToContainer(containerID, srcPath, dstPath string, isDir bool) error
 }
 
 // dClient wraps docker's client
@@ -44,7 +45,7 @@ func (d *dClient) StartContainer(image string, name string) (string, error) {
 		OpenStdin:    true,
 		Cmd:          []string{"/bin/bash"},
 		Tty:          true,
-		User:         "ci",
+		User:         "root",
 	}
 
 	container, err := d.client.ContainerCreate(context.Background(), containerCfg, nil, nil, name)
@@ -60,20 +61,15 @@ func (d *dClient) StartContainer(image string, name string) (string, error) {
 	return container.ID, nil
 }
 
-func (d *dClient) RunBuild(containerID, pathToBuildScript string, build *model.BuildStatus, wr io.Writer) error {
-	err := d.copyToContainer(pathToBuildScript, containerID, "/home/ci")
-	if err != nil {
-		return err
-	}
-
+func (d *dClient) RunBuild(build *model.BuildStatus, repoDir string, wr io.Writer) error {
 	execCfg := types.ExecConfig{
-		Cmd:          []string{"bash", "-x", "/home/ci/build.sh", build.CloneURL},
+		Cmd:          []string{"bash", "-x", "/root/build.sh", repoDir},
 		AttachStdout: true,
 		AttachStderr: true,
 		Tty:          true,
 	}
 
-	exec, err := d.client.ContainerExecCreate(context.Background(), containerID, execCfg)
+	exec, err := d.client.ContainerExecCreate(context.Background(), build.ID, execCfg)
 	if err != nil {
 		return err
 	}
@@ -107,10 +103,10 @@ func (d *dClient) RunBuild(containerID, pathToBuildScript string, build *model.B
 	return nil
 }
 
-func (d *dClient) copyToContainer(srcPath, containerID, dstPath string) error {
+func (d *dClient) CopyToContainer(containerID, srcPath, dstPath string, isDir bool) error {
 	srcInfo := archive.CopyInfo{
 		Exists: true,
-		IsDir:  false,
+		IsDir:  isDir,
 		Path:   srcPath,
 	}
 

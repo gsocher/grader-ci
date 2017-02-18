@@ -1,4 +1,3 @@
 FROM golang
-RUN adduser --disabled-password --gecos '' ci
-USER ci
+USER root
 ENTRYPOINT /bin/bash

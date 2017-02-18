@@ -1,9 +1,9 @@
 package worker
 
 import (
-	"testing"
-
 	"os"
+	"path/filepath"
+	"testing"
 
 	"github.com/dpolansky/ci/model"
 	"github.com/google/uuid"
@@ -15,9 +15,11 @@ func TestRunBuild(t *testing.T) {
 		t.Fatalf("Failed to create worker, err=%v", err)
 	}
 
+	gopath := os.Getenv("GOPATH")
+	repoPath := filepath.Join(gopath, "src/github.com/dpolansky/ci/worker/test/golang")
+
 	task := &model.BuildStatus{
-		Language: "test",
-		CloneURL: "github.com/dpolansky/go-poet",
+		CloneURL: repoPath,
 		ID:       uuid.New().String(),
 	}
 
