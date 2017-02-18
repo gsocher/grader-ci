@@ -29,6 +29,26 @@ func TestRunBuild(t *testing.T) {
 	}
 }
 
+func TestRunBuildFail(t *testing.T) {
+	w, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create worker, err=%v", err)
+	}
+
+	gopath := os.Getenv("GOPATH")
+	repoPath := filepath.Join(gopath, "src/github.com/dpolansky/ci/worker/test/golang-fail")
+
+	task := &model.BuildStatus{
+		CloneURL: repoPath,
+		ID:       uuid.New().String(),
+	}
+
+	err = w.RunBuild(task, os.Stdout)
+	if err == nil {
+		t.Fatalf("Expected build to fail")
+	}
+}
+
 func TestGetImageForLanguage(t *testing.T) {
 	var tests = []struct {
 		language    string
