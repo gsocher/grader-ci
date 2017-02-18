@@ -42,7 +42,6 @@ func main() {
 		log.WithFields(logrus.Fields{
 			"id":       build.ID,
 			"cloneURL": build.CloneURL,
-			"lang":     build.Language,
 		}).Infof("Received build")
 
 		// set status to running and send an update

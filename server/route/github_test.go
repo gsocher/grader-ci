@@ -1,32 +1,32 @@
-package server
+package route
 
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/dpolansky/ci/server/service"
+	"github.com/gorilla/mux"
 )
 
 func TestGithubWebhook(t *testing.T) {
+	router := mux.NewRouter()
 	amqpClient := service.NewMockClient()
 	builder := service.NewBuilder(amqpClient)
-	s, err := New(builder)
-	if err != nil {
-		t.Fatalf("Failed to initialize server: %v", err)
-	}
 
-	ts := httptest.NewServer(s.Router)
+	// add the route to the router
+	RegisterGithubWebhookRoutes(router, builder)
+
+	ts := httptest.NewServer(router)
 	defer ts.Close()
 
 	// create a test webhook payload
 	var payload githubWebhookRequest
 	payload.Repository.FullName = "docker/docker"
+
 	b, _ := json.Marshal(payload)
-	fmt.Println(string(b))
 	buf := bytes.NewBuffer(b)
 
 	// execute post

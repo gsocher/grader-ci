@@ -1,4 +1,4 @@
-package server
+package route
 
 import (
 	"net/http"
@@ -6,17 +6,18 @@ import (
 	"testing"
 
 	"github.com/dpolansky/ci/server/service"
+	"github.com/gorilla/mux"
 )
 
 func TestGetStatus(t *testing.T) {
+	router := mux.NewRouter()
 	amqpClient := service.NewMockClient()
 	builder := service.NewBuilder(amqpClient)
-	s, err := New(builder)
-	if err != nil {
-		t.Fatalf("Failed to initialize server: %v", err)
-	}
 
-	ts := httptest.NewServer(s.Router)
+	// add the route to the router
+	RegisterBuildStatusRoutes(router, builder)
+
+	ts := httptest.NewServer(router)
 	defer ts.Close()
 
 	// add a status to the build service
@@ -37,14 +38,14 @@ func TestGetStatus(t *testing.T) {
 }
 
 func TestGetStatusNotFound(t *testing.T) {
+	router := mux.NewRouter()
 	amqpClient := service.NewMockClient()
 	builder := service.NewBuilder(amqpClient)
-	s, err := New(builder)
-	if err != nil {
-		t.Fatalf("Failed to initialize server: %v", err)
-	}
 
-	ts := httptest.NewServer(s.Router)
+	// add the route to the router
+	RegisterBuildStatusRoutes(router, builder)
+
+	ts := httptest.NewServer(router)
 	defer ts.Close()
 
 	r, err := http.Get(ts.URL + "/status/foo")

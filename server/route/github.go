@@ -1,4 +1,4 @@
-package server
+package route
 
 import (
 	"encoding/json"
@@ -7,11 +7,12 @@ import (
 	"net/http"
 
 	"github.com/dpolansky/ci/server/service"
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
 
-func (s *Server) registerGithubWebhookRoutes() {
-	s.Router.HandleFunc("/github", parseWebhookHTTPHandler(s.Builder)).Methods("POST")
+func RegisterGithubWebhookRoutes(router *mux.Router, builder service.Builder) {
+	router.HandleFunc("/github", parseWebhookHTTPHandler(builder)).Methods("POST")
 }
 
 type githubWebhookRequest struct {

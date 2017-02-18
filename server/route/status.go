@@ -1,4 +1,4 @@
-package server
+package route
 
 import (
 	"encoding/json"
@@ -12,8 +12,8 @@ import (
 
 const pathTokenBuildID = "build_id"
 
-func (s *Server) registerBuildStatusRoutes() {
-	s.Router.HandleFunc("/status/{"+pathTokenBuildID+"}", getBuildStatusHTTPHandler(s.Builder)).Methods("GET")
+func RegisterBuildStatusRoutes(router *mux.Router, builder service.Builder) {
+	router.HandleFunc("/status/{"+pathTokenBuildID+"}", getBuildStatusHTTPHandler(builder)).Methods("GET")
 }
 
 func getBuildStatusHTTPHandler(builder service.Builder) func(rw http.ResponseWriter, req *http.Request) {

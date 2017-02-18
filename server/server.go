@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/dpolansky/ci/server/route"
 	"github.com/dpolansky/ci/server/service"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -39,6 +40,6 @@ func (s *Server) Serve() {
 }
 
 func (s *Server) registerRoutes() {
-	s.registerGithubWebhookRoutes()
-	s.registerBuildStatusRoutes()
+	route.RegisterGithubWebhookRoutes(s.Router, s.Builder)
+	route.RegisterBuildStatusRoutes(s.Router, s.Builder)
 }
