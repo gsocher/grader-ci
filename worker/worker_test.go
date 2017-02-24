@@ -2,11 +2,12 @@ package worker
 
 import (
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/dpolansky/ci/model"
 )
+
+const testReposURL = "https://github.com/dpolansky/ci-test-repos"
 
 func TestRunBuild(t *testing.T) {
 	w, err := New()
@@ -14,11 +15,9 @@ func TestRunBuild(t *testing.T) {
 		t.Fatalf("Failed to create worker, err=%v", err)
 	}
 
-	gopath := os.Getenv("GOPATH")
-	repoPath := filepath.Join(gopath, "src/github.com/dpolansky/ci/worker/test/golang")
-
 	task := &model.BuildStatus{
-		CloneURL: repoPath,
+		CloneURL: testReposURL,
+		Branch:   "golang",
 		ID:       1,
 	}
 
@@ -34,11 +33,9 @@ func TestRunBuildFail(t *testing.T) {
 		t.Fatalf("Failed to create worker, err=%v", err)
 	}
 
-	gopath := os.Getenv("GOPATH")
-	repoPath := filepath.Join(gopath, "src/github.com/dpolansky/ci/worker/test/golang-fail")
-
 	task := &model.BuildStatus{
-		CloneURL: repoPath,
+		CloneURL: testReposURL,
+		Branch:   "fail",
 		ID:       1,
 	}
 

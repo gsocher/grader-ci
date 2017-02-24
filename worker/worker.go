@@ -37,12 +37,14 @@ func (w *Worker) RunBuild(b *model.BuildStatus, wr io.Writer) error {
 	log := logrus.WithFields(logrus.Fields{
 		"id":       b.ID,
 		"cloneURL": b.CloneURL,
+		"branch":   b.Branch,
 	})
 
 	log.Infof("Initializing build")
 	id := fmt.Sprintf("%v", b.ID)
 
-	dir, err := cloneRepoIntoTempDir(id, b.CloneURL)
+	log.Infof("Cloning into repo")
+	dir, err := cloneRepoIntoTempDir(id, b.CloneURL, b.Branch)
 	if err != nil {
 		return fmt.Errorf("Failed to clone repo: %v", err)
 	}
@@ -63,25 +65,29 @@ func (w *Worker) RunBuild(b *model.BuildStatus, wr io.Writer) error {
 		return fmt.Errorf("Failed to get build sript path: %v", err)
 	}
 
+	log.Info("Starting container")
+
+	containerName, err := w.dockerClient.StartContainer(image)
+
+	// startContainer creates and starts the container, so if the start fails then
+	// we defer a cleanup to remove the created container
 	defer func() {
 		log.Info("Stopping container")
-		err := w.dockerClient.StopContainer(id)
+		err := w.dockerClient.StopContainer(containerName)
 		if err != nil {
 			log.WithError(err).Errorf("Failed to stop container")
 		}
 	}()
 
-	log.Info("Starting container")
-	_, err = w.dockerClient.StartContainer(image, id)
 	if err != nil {
 		return fmt.Errorf("Failed to start container for image %v: %v", image, err)
 	}
 
-	w.dockerClient.CopyToContainer(id, scriptPath, "/root", false)
-	w.dockerClient.CopyToContainer(id, dir, "/root/", true)
+	w.dockerClient.CopyToContainer(containerName, scriptPath, "/root", false)
+	w.dockerClient.CopyToContainer(containerName, dir, "/root/", true)
 
 	log.Info("Running build script")
-	err = w.dockerClient.RunBuild(b, filepath.Base(dir), wr)
+	err = w.dockerClient.RunBuild(containerName, b, filepath.Base(dir), wr)
 	if err != nil {
 		return fmt.Errorf("Failed to run build on container %v: %v", b.ID, err)
 	}
@@ -90,13 +96,13 @@ func (w *Worker) RunBuild(b *model.BuildStatus, wr io.Writer) error {
 }
 
 // cloneRepoIntoTempDir clones the target repo into a temp dir and returns the path of the dir.
-func cloneRepoIntoTempDir(id, cloneURL string) (string, error) {
+func cloneRepoIntoTempDir(id, cloneURL, branch string) (string, error) {
 	path, err := ioutil.TempDir("", id)
 	if err != nil {
 		return "", fmt.Errorf("Failed to create temp dir: %v", err)
 	}
 
-	cmd := exec.Command("git", "clone", cloneURL, path)
+	cmd := exec.Command("git", "clone", "-b", branch, cloneURL, path)
 	if err := cmd.Run(); err != nil {
 		os.RemoveAll(path)
 		return "", fmt.Errorf("Failed to exec clone command: %v", err)
