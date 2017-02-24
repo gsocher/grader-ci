@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/dpolansky/ci/server/service"
 	"github.com/gorilla/mux"
@@ -25,7 +26,13 @@ func getBuildStatusHTTPHandler(builder service.Builder) func(rw http.ResponseWri
 			return
 		}
 
-		status, err := builder.GetStatusForBuild(id)
+		asInt, err := strconv.Atoi(id)
+		if err != nil {
+			writeError(rw, http.StatusBadRequest, fmt.Errorf("Build ID should be a number"))
+			return
+		}
+
+		status, err := builder.GetStatusForBuild(asInt)
 		if err != nil {
 			writeError(rw, http.StatusNotFound, err)
 			return

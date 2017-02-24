@@ -10,7 +10,7 @@ const (
 )
 
 type BuildStatus struct {
-	ID         string    `json: "id"`
+	ID         int       `json: "id"`
 	LastUpdate time.Time `json: "lastUpdate"`
 	CloneURL   string    `json: "cloneURL"`
 	Status     string    `json: "status"`

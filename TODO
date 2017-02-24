@@ -1,10 +1,9 @@
-rest api
+server
+    - job numbers instead of ids (0,1,...)
+    - sqllite with gorm for storage
     - endpoints
-        - receiving git webhook to start jobs
-        - registering repositories (webhook endpoint will validate that it is a registered repo)
-        - checking state of a job (status, log output, time?)
-
-
+        - list active jobs
+        - list all jobs? (paging eventually)
+        
 worker process
-    - clone target repo first and then copy it over so i can parse configuration file
     - add more languages (probably java, ruby, c first)

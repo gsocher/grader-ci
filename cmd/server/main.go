@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/dpolansky/ci/server"
+	"github.com/dpolansky/ci/server/repo"
 	"github.com/dpolansky/ci/server/service"
 	"github.com/sirupsen/logrus"
 )
@@ -12,7 +13,10 @@ func main() {
 		logrus.WithError(err).Fatalf("Failed to start AMQP client")
 	}
 
-	builder := service.NewBuilder(amqpClient)
+	// store build statuses in memory
+	inmemRepo := repo.NewInMemoryStatusRepo()
+
+	builder := service.NewBuilder(amqpClient, inmemRepo)
 
 	serv, err := server.New(builder)
 	if err != nil {

@@ -69,7 +69,7 @@ func (d *dClient) RunBuild(build *model.BuildStatus, repoDir string, wr io.Write
 		Tty:          true,
 	}
 
-	exec, err := d.client.ContainerExecCreate(context.Background(), build.ID, execCfg)
+	exec, err := d.client.ContainerExecCreate(context.Background(), fmt.Sprintf("%v", build.ID), execCfg)
 	if err != nil {
 		return err
 	}

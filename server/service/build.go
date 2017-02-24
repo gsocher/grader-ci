@@ -3,13 +3,10 @@ package service
 import (
 	"encoding/json"
 	"fmt"
-	"sort"
 	"time"
 
-	"sync"
-
 	"github.com/dpolansky/ci/model"
-	"github.com/google/uuid"
+	"github.com/dpolansky/ci/server/repo"
 	"github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 )
@@ -17,27 +14,25 @@ import (
 // Builder represents the logic for starting and checking the status of builds.
 type Builder interface {
 	StartBuild(cloneURL string) (*model.BuildStatus, error)
-	GetStatusForBuild(id string) (*model.BuildStatus, error)
-	UpdateStatusForBuild(build *model.BuildStatus) *model.BuildStatus
+	GetStatusForBuild(id int) (*model.BuildStatus, error)
+	UpdateStatusForBuild(build *model.BuildStatus) (*model.BuildStatus, error)
+	GetBuildStatuses() ([]*model.BuildStatus, error)
 	ListenForUpdates()
 }
 
 type buildService struct {
 	log       *logrus.Entry
 	messenger Messenger
-
-	lock   *sync.Mutex
-	builds map[string]*model.BuildStatus
+	repo      repo.BuildStatusRepo
 }
 
-func NewBuilder(m Messenger) Builder {
+func NewBuilder(m Messenger, r repo.BuildStatusRepo) Builder {
 	log := logrus.WithField("module", "BuildService")
 
 	return &buildService{
 		log:       log,
 		messenger: m,
-		lock:      &sync.Mutex{},
-		builds:    map[string]*model.BuildStatus{},
+		repo:      r,
 	}
 }
 
@@ -57,13 +52,9 @@ func (b *buildService) ListenForUpdates() {
 }
 
 func (b *buildService) StartBuild(cloneURL string) (*model.BuildStatus, error) {
-	id := uuid.New().String()
-
 	build := &model.BuildStatus{
-		ID:         id,
-		CloneURL:   cloneURL,
-		LastUpdate: time.Now(),
-		Status:     model.StatusBuildWaiting,
+		CloneURL: cloneURL,
+		Status:   model.StatusBuildWaiting,
 	}
 
 	bytes, err := json.Marshal(build)
@@ -76,61 +67,34 @@ func (b *buildService) StartBuild(cloneURL string) (*model.BuildStatus, error) {
 		return nil, fmt.Errorf("Failed to send build to queue: %v", err)
 	}
 
-	b.log.WithField("id", id).Infof("Sent build")
+	status, err := b.UpdateStatusForBuild(build)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to update status for build %+v: %v", build, err)
+	}
 
-	b.UpdateStatusForBuild(build)
+	b.log.WithField("id", status.ID).Infof("Sent build")
 	return build, nil
 }
 
-func (b *buildService) GetStatusForBuild(id string) (*model.BuildStatus, error) {
-	b.lock.Lock()
-	defer b.lock.Unlock()
-
-	status, found := b.builds[id]
-	if !found {
-		return nil, fmt.Errorf("No build found with id %v", id)
-	}
-
-	return status, nil
+func (b *buildService) GetStatusForBuild(id int) (*model.BuildStatus, error) {
+	return b.repo.GetStatusForId(id)
 }
 
-func (b *buildService) UpdateStatusForBuild(build *model.BuildStatus) *model.BuildStatus {
-	b.lock.Lock()
-	defer b.lock.Unlock()
-	b.builds[build.ID] = build
+func (b *buildService) UpdateStatusForBuild(build *model.BuildStatus) (*model.BuildStatus, error) {
+	build.LastUpdate = time.Now()
+	build, err := b.repo.UpsertStatus(build)
+	if err != nil {
+		return nil, err
+	}
 
 	b.log.WithFields(logrus.Fields{
 		"id":     build.ID,
 		"status": build.Status,
 	}).Infof("Build status updated")
 
-	return build
+	return build, nil
 }
 
-func (b *buildService) GetAllBuilds() []*model.BuildStatus {
-	b.lock.Lock()
-	defer b.lock.Unlock()
-
-	builds := Builds{}
-
-	for _, build := range b.builds {
-		builds = append(builds, build)
-	}
-
-	sort.Sort(builds)
-	return builds
-}
-
-type Builds []*model.BuildStatus
-
-func (slice Builds) Len() int {
-	return len(slice)
-}
-
-func (slice Builds) Less(i, j int) bool {
-	return slice[i].ID < slice[j].ID
-}
-
-func (slice Builds) Swap(i, j int) {
-	slice[i], slice[j] = slice[j], slice[i]
+func (b *buildService) GetBuildStatuses() ([]*model.BuildStatus, error) {
+	return b.repo.GetStatuses()
 }

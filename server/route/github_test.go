@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/dpolansky/ci/server/repo"
 	"github.com/dpolansky/ci/server/service"
 	"github.com/gorilla/mux"
 )
@@ -14,7 +15,8 @@ import (
 func TestGithubWebhook(t *testing.T) {
 	router := mux.NewRouter()
 	amqpClient := service.NewMockClient()
-	builder := service.NewBuilder(amqpClient)
+	statusRepo := repo.NewInMemoryStatusRepo()
+	builder := service.NewBuilder(amqpClient, statusRepo)
 
 	// add the route to the router
 	RegisterGithubWebhookRoutes(router, builder)
@@ -39,4 +41,5 @@ func TestGithubWebhook(t *testing.T) {
 	if r.StatusCode != http.StatusOK {
 		t.Fatalf("expected %v got %v", http.StatusOK, r.StatusCode)
 	}
+
 }

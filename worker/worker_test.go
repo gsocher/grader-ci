@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/dpolansky/ci/model"
-	"github.com/google/uuid"
 )
 
 func TestRunBuild(t *testing.T) {
@@ -20,7 +19,7 @@ func TestRunBuild(t *testing.T) {
 
 	task := &model.BuildStatus{
 		CloneURL: repoPath,
-		ID:       uuid.New().String(),
+		ID:       1,
 	}
 
 	err = w.RunBuild(task, os.Stdout)
@@ -40,7 +39,7 @@ func TestRunBuildFail(t *testing.T) {
 
 	task := &model.BuildStatus{
 		CloneURL: repoPath,
-		ID:       uuid.New().String(),
+		ID:       1,
 	}
 
 	err = w.RunBuild(task, os.Stdout)

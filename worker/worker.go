@@ -40,8 +40,9 @@ func (w *Worker) RunBuild(b *model.BuildStatus, wr io.Writer) error {
 	})
 
 	log.Infof("Initializing build")
+	id := fmt.Sprintf("%v", b.ID)
 
-	dir, err := cloneRepoIntoTempDir(b.ID, b.CloneURL)
+	dir, err := cloneRepoIntoTempDir(id, b.CloneURL)
 	if err != nil {
 		return fmt.Errorf("Failed to clone repo: %v", err)
 	}
@@ -64,20 +65,20 @@ func (w *Worker) RunBuild(b *model.BuildStatus, wr io.Writer) error {
 
 	defer func() {
 		log.Info("Stopping container")
-		err := w.dockerClient.StopContainer(b.ID)
+		err := w.dockerClient.StopContainer(id)
 		if err != nil {
 			log.WithError(err).Errorf("Failed to stop container")
 		}
 	}()
 
 	log.Info("Starting container")
-	_, err = w.dockerClient.StartContainer(image, b.ID)
+	_, err = w.dockerClient.StartContainer(image, id)
 	if err != nil {
 		return fmt.Errorf("Failed to start container for image %v: %v", image, err)
 	}
 
-	w.dockerClient.CopyToContainer(b.ID, scriptPath, "/root", false)
-	w.dockerClient.CopyToContainer(b.ID, dir, "/root/", true)
+	w.dockerClient.CopyToContainer(id, scriptPath, "/root", false)
+	w.dockerClient.CopyToContainer(id, dir, "/root/", true)
 
 	log.Info("Running build script")
 	err = w.dockerClient.RunBuild(b, filepath.Base(dir), wr)

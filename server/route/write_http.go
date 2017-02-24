@@ -19,11 +19,7 @@ func writeError(rw http.ResponseWriter, statusCode int, e error) error {
 		Msg:    e.Error(),
 	}
 
-	b, err := json.Marshal(m)
-	if err != nil {
-		return err
-	}
-
+	b, _ := json.Marshal(m)
 	rw.Write(b)
 
 	return nil
