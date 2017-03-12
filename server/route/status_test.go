@@ -30,7 +30,7 @@ func TestGetStatus(t *testing.T) {
 	}
 
 	// check if the status exists
-	r, err := http.Get(ts.URL + "/status/" + fmt.Sprintf("%v", status.ID))
+	r, err := http.Get(ts.URL + pathURLBuildStatusAPI + fmt.Sprintf("%v", status.ID))
 	if err != nil {
 		t.Fatalf("unexpected http client err: %v", err)
 	}

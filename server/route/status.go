@@ -12,9 +12,10 @@ import (
 )
 
 const pathTokenBuildID = "build_id"
+const pathURLBuildStatusAPI = "/api/status"
 
 func RegisterBuildStatusRoutes(router *mux.Router, builder service.Builder) {
-	router.HandleFunc("/status/{"+pathTokenBuildID+"}", getBuildStatusHTTPHandler(builder)).Methods("GET")
+	router.HandleFunc(pathURLBuildStatusAPI+"{"+pathTokenBuildID+"}", getBuildStatusHTTPHandler(builder)).Methods("GET")
 }
 
 func getBuildStatusHTTPHandler(builder service.Builder) func(rw http.ResponseWriter, req *http.Request) {

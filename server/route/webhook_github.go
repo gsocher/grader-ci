@@ -11,8 +11,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const pathURLGithubWebhookAPI = "/api/github"
+
 func RegisterGithubWebhookRoutes(router *mux.Router, builder service.Builder) {
-	router.HandleFunc("/github", parseWebhookHTTPHandler(builder)).Methods("POST")
+	router.HandleFunc(pathURLGithubWebhookAPI, parseWebhookHTTPHandler(builder)).Methods("POST")
 }
 
 type githubWebhookRequest struct {

@@ -32,7 +32,7 @@ func TestGithubWebhook(t *testing.T) {
 	buf := bytes.NewBuffer(b)
 
 	// execute post
-	r, err := http.Post(ts.URL+"/github", "application/json", buf)
+	r, err := http.Post(ts.URL+pathURLGithubWebhookAPI, "application/json", buf)
 	if err != nil {
 		t.Fatalf("unexpected http client err: %v", err)
 	}
