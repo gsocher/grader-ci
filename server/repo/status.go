@@ -29,6 +29,9 @@ func NewInMemoryStatusRepo() BuildStatusRepo {
 func (m *memStatusRepo) UpsertStatus(build *model.BuildStatus) (*model.BuildStatus, error) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
+	for i, b := range m.builds {
+		fmt.Printf("%v : %#v\n", i, b)
+	}
 
 	// if we haven't seen this build yet, generate a new id
 	if build.ID == 0 {
@@ -57,9 +60,11 @@ func (m *memStatusRepo) GetStatuses() ([]*model.BuildStatus, error) {
 	defer m.lock.Unlock()
 
 	var buildsTyped Builds = m.builds
-	sort.Sort(buildsTyped)
+	var buildsCopy Builds = make([]*model.BuildStatus, len(buildsTyped))
+	copy(buildsCopy, buildsTyped)
+	sort.Sort(buildsCopy)
 
-	return buildsTyped, nil
+	return buildsCopy, nil
 }
 
 func (m *memStatusRepo) getNextStatusID() int {
@@ -73,7 +78,7 @@ func (slice Builds) Len() int {
 }
 
 func (slice Builds) Less(i, j int) bool {
-	return slice[i].ID < slice[j].ID
+	return slice[i].ID > slice[j].ID
 }
 
 func (slice Builds) Swap(i, j int) {
