@@ -40,6 +40,10 @@ func (s *Server) Serve() {
 }
 
 func (s *Server) registerRoutes() {
+	// api routes
 	route.RegisterGithubWebhookRoutes(s.Router, s.Builder)
 	route.RegisterBuildStatusRoutes(s.Router, s.Builder)
+
+	// frontend routes
+	route.RegisterBuildStatusFrontendRoutes(s.Router, s.Builder)
 }

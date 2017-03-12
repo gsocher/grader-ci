@@ -13,7 +13,7 @@ import (
 
 // Builder represents the logic for starting and checking the status of builds.
 type Builder interface {
-	StartBuild(cloneURL string) (*model.BuildStatus, error)
+	StartBuild(cloneURL, branch string) (*model.BuildStatus, error)
 	GetStatusForBuild(id int) (*model.BuildStatus, error)
 	UpdateStatusForBuild(build *model.BuildStatus) (*model.BuildStatus, error)
 	GetBuildStatuses() ([]*model.BuildStatus, error)
@@ -51,10 +51,16 @@ func (b *buildService) ListenForUpdates() {
 	}, nil)
 }
 
-func (b *buildService) StartBuild(cloneURL string) (*model.BuildStatus, error) {
+func (b *buildService) StartBuild(cloneURL, branch string) (*model.BuildStatus, error) {
 	build := &model.BuildStatus{
 		CloneURL: cloneURL,
+		Branch:   branch,
 		Status:   model.StatusBuildWaiting,
+	}
+
+	status, err := b.UpdateStatusForBuild(build)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to update status for build %+v: %v", build, err)
 	}
 
 	bytes, err := json.Marshal(build)
@@ -65,11 +71,6 @@ func (b *buildService) StartBuild(cloneURL string) (*model.BuildStatus, error) {
 	err = b.messenger.SendToQueue(model.AMQPBuildQueue, bytes)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to send build to queue: %v", err)
-	}
-
-	status, err := b.UpdateStatusForBuild(build)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to update status for build %+v: %v", build, err)
 	}
 
 	b.log.WithField("id", status.ID).Infof("Sent build")

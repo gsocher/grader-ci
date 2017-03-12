@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"path/filepath"
+
 	"github.com/dpolansky/ci/server/service"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -18,6 +20,7 @@ func RegisterGithubWebhookRoutes(router *mux.Router, builder service.Builder) {
 }
 
 type githubWebhookRequest struct {
+	Ref        string `json:"ref"`
 	Repository struct {
 		FullName string `json:"full_name"`
 	} `json:"repository"`
@@ -40,8 +43,10 @@ func parseWebhookHTTPHandler(builder service.Builder) func(rw http.ResponseWrite
 			return
 		}
 
-		cloneURL := fmt.Sprintf("github.com/%s", r.Repository.FullName)
-		status, err := builder.StartBuild(cloneURL)
+		cloneURL := fmt.Sprintf("https://github.com/%s", r.Repository.FullName)
+		branch := filepath.Base(r.Ref)
+
+		status, err := builder.StartBuild(cloneURL, branch)
 		if err != nil {
 			logrus.WithError(err).WithField("req", string(body)).Errorf("Failed to start build")
 			writeError(rw, http.StatusInternalServerError, err)
