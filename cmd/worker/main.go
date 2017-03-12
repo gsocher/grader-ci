@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/dpolansky/ci/model"
@@ -53,12 +54,18 @@ func main() {
 		io.Copy(os.Stdout, buf)
 
 		if err := w.RunBuild(&build, buf); err != nil {
+			log.WithFields(logrus.Fields{
+				"id":       build.ID,
+				"cloneURL": build.CloneURL,
+			}).WithError(err).Errorf("Failed to run build")
+
 			build.Status = model.StatusBuildFailed
+			build.Log += fmt.Sprintf("Failed to run build: %v\n", err)
 		} else {
 			build.Status = model.StatusBuildPassed
 		}
 
-		build.Log = buf.String()
+		build.Log += buf.String()
 
 		// send passed/failed status and log
 		byt, _ = json.Marshal(&build)

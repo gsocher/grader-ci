@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -48,6 +49,7 @@ func (w *Worker) RunBuild(b *model.BuildStatus, wr io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("Failed to clone repo: %v", err)
 	}
+
 	defer os.RemoveAll(dir)
 
 	cfg, err := parseConfigInDir(dir)
@@ -103,6 +105,10 @@ func cloneRepoIntoTempDir(id, cloneURL, branch string) (string, error) {
 	}
 
 	cmd := exec.Command("git", "clone", "-b", branch, cloneURL, path)
+
+	b := &bytes.Buffer{}
+	cmd.Stderr = b
+
 	if err := cmd.Run(); err != nil {
 		os.RemoveAll(path)
 		return "", fmt.Errorf("Failed to exec clone command: %v", err)
