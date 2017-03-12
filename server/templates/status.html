@@ -1,0 +1,20 @@
+<h1>Builds</h1>
+<table style="width: 100%">
+  <tr>
+    <th>ID</th>
+    <th>Clone URL</th> 
+    <th>Branch</th>
+    <th>Status</th>
+    <th>Last Update</th>
+  </tr>
+
+  {{range .Statuses}}
+    <tr>
+        <td>{{.ID}}</td>
+        <td>{{.CloneURL}}</td>
+        <td>{{.Branch}}</td>
+        <td>{{.Status}}</td>
+        <td>{{.LastUpdate}}</td>
+    </tr>
+  {{end}}
+</table>
