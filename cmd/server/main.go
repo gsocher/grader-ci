@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/dpolansky/ci/model"
 	"github.com/dpolansky/ci/server"
 	"github.com/dpolansky/ci/server/repo"
 	"github.com/dpolansky/ci/server/service"
@@ -13,10 +14,12 @@ func main() {
 		logrus.WithError(err).Fatalf("Failed to start AMQP client")
 	}
 
-	// store build statuses in memory
-	inmemRepo := repo.NewInMemoryStatusRepo()
+	sqliteBuildRepo, err := repo.NewSQLiteBuildRepo(model.SQLiteFilepath)
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to start SQLite build repo")
+	}
 
-	builder := service.NewBuilder(amqpClient, inmemRepo)
+	builder := service.NewBuilder(amqpClient, sqliteBuildRepo)
 
 	serv, err := server.New(builder)
 	if err != nil {

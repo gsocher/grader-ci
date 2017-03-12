@@ -36,3 +36,6 @@ _testmain.go
 # gvt
 vendor/**
 !vendor/manifest
+
+# sqlite
+*.db

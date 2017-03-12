@@ -33,7 +33,7 @@ func getBuildStatusHTTPHandler(builder service.Builder) func(rw http.ResponseWri
 			return
 		}
 
-		status, err := builder.GetStatusForBuild(asInt)
+		status, err := builder.GetBuildByID(asInt)
 		if err != nil {
 			writeError(rw, http.StatusNotFound, err)
 			return

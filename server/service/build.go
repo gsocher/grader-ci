@@ -14,19 +14,19 @@ import (
 // Builder represents the logic for starting and checking the status of builds.
 type Builder interface {
 	StartBuild(cloneURL, branch string) (*model.BuildStatus, error)
-	GetStatusForBuild(id int) (*model.BuildStatus, error)
-	UpdateStatusForBuild(build *model.BuildStatus) (*model.BuildStatus, error)
-	GetBuildStatuses() ([]*model.BuildStatus, error)
+	GetBuildByID(id int) (*model.BuildStatus, error)
+	UpdateBuild(build *model.BuildStatus) error
+	GetBuildsBySourceRepositoryURL(cloneURL string) ([]*model.BuildStatus, error)
 	ListenForUpdates()
 }
 
 type buildService struct {
 	log       *logrus.Entry
 	messenger Messenger
-	repo      repo.BuildStatusRepo
+	repo      repo.BuildRepo
 }
 
-func NewBuilder(m Messenger, r repo.BuildStatusRepo) Builder {
+func NewBuilder(m Messenger, r repo.BuildRepo) Builder {
 	log := logrus.WithField("module", "BuildService")
 
 	return &buildService{
@@ -47,7 +47,10 @@ func (b *buildService) ListenForUpdates() {
 			return
 		}
 
-		b.UpdateStatusForBuild(&build)
+		err = b.UpdateBuild(&build)
+		if err != nil {
+			b.log.WithError(err).WithField("id", build.ID).Errorf("Failed to update build")
+		}
 	}, nil)
 }
 
@@ -58,7 +61,8 @@ func (b *buildService) StartBuild(cloneURL, branch string) (*model.BuildStatus, 
 		Status:   model.StatusBuildWaiting,
 	}
 
-	status, err := b.UpdateStatusForBuild(build)
+	err := b.UpdateBuild(build)
+
 	if err != nil {
 		return nil, fmt.Errorf("Failed to update status for build %+v: %v", build, err)
 	}
@@ -73,19 +77,19 @@ func (b *buildService) StartBuild(cloneURL, branch string) (*model.BuildStatus, 
 		return nil, fmt.Errorf("Failed to send build to queue: %v", err)
 	}
 
-	b.log.WithField("id", status.ID).Infof("Sent build")
+	b.log.WithField("id", build.ID).Infof("Sent build")
 	return build, nil
 }
 
-func (b *buildService) GetStatusForBuild(id int) (*model.BuildStatus, error) {
-	return b.repo.GetStatusForId(id)
+func (b *buildService) GetBuildByID(id int) (*model.BuildStatus, error) {
+	return b.repo.GetBuildByID(id)
 }
 
-func (b *buildService) UpdateStatusForBuild(build *model.BuildStatus) (*model.BuildStatus, error) {
+func (b *buildService) UpdateBuild(build *model.BuildStatus) error {
 	build.LastUpdate = time.Now()
-	build, err := b.repo.UpsertStatus(build)
+	id, err := b.repo.UpdateBuild(build)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	b.log.WithFields(logrus.Fields{
@@ -93,9 +97,10 @@ func (b *buildService) UpdateStatusForBuild(build *model.BuildStatus) (*model.Bu
 		"status": build.Status,
 	}).Infof("Build status updated")
 
-	return build, nil
+	build.ID = id
+	return nil
 }
 
-func (b *buildService) GetBuildStatuses() ([]*model.BuildStatus, error) {
-	return b.repo.GetStatuses()
+func (b *buildService) GetBuildsBySourceRepositoryURL(cloneURL string) ([]*model.BuildStatus, error) {
+	return b.repo.GetBuildsBySourceRepositoryURL(cloneURL)
 }
