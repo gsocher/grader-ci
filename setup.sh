@@ -54,3 +54,6 @@ wget -O- https://www.rabbitmq.com/rabbitmq-release-signing-key.asc |
 sudo apt-get update
 sudo apt-get -y install rabbitmq-server
 
+# install sqlite
+sudo apt-get install sqlite3 libsqlite3-dev
+
