@@ -1,8 +1,8 @@
 package server
 
 import (
+	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"testing"
 	"time"
@@ -12,22 +12,37 @@ import (
 
 func TestStatusTemplate(t *testing.T) {
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		tmpl := template.Must(template.ParseFiles("templates/status.html"))
-		statuses := []model.BuildStatus{
-			{
-				ID:         1,
-				LastUpdate: time.Now(),
-				CloneURL:   "github.com/docker/docker",
-				Branch:     "master",
-				Status:     model.StatusBuildPassed,
-				Log:        "log output...",
-			},
+	http.HandleFunc("/detail", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("got detail req\n")
+		tmpl := template.Must(template.ParseFiles("templates/status_detail.html"))
+		status := model.BuildStatus{
+			ID:         1,
+			LastUpdate: time.Now(),
+			CloneURL:   "github.com/docker/docker",
+			Branch:     "master",
+			Status:     model.StatusBuildPassed,
+			Log:        "log output...",
 		}
 
-		tmpl.Execute(w, struct{ Statuses []model.BuildStatus }{statuses})
+		tmpl.Execute(w, status)
 	})
 
-	log.Printf("listening...")
+	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// 	tmpl := template.Must(template.ParseFiles("templates/status_list.html"))
+	// 	statuses := []model.BuildStatus{
+	// 		{
+	// 			ID:         1,
+	// 			LastUpdate: time.Now(),
+	// 			CloneURL:   "github.com/docker/docker",
+	// 			Branch:     "master",
+	// 			Status:     model.StatusBuildPassed,
+	// 			Log:        "log output...",
+	// 		},
+	// 	}
+
+	// 	tmpl.Execute(w, struct{ Statuses []model.BuildStatus }{statuses})
+	// })
+
+	fmt.Printf("listening...\n")
 	http.ListenAndServe(":8090", nil)
 }
