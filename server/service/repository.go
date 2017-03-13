@@ -6,6 +6,14 @@ import (
 )
 
 type RepositoryService interface {
+	CreateRepository(m *model.Repository) error
+	GetRepositoriesByOwner(owner string) ([]*model.Repository, error)
+}
+
+func NewRepositoryService(repo repo.RepositoryRepo) RepositoryService {
+	return &repoService{
+		repo: repo,
+	}
 }
 
 type repoService struct {
@@ -16,16 +24,6 @@ func (r *repoService) GetRepositoriesByOwner(owner string) ([]*model.Repository,
 	return r.repo.GetRepositoriesByOwner(owner)
 }
 
-func (r *repoService) CreateRepository(cloneURL, owner string) (*model.Repository, error) {
-	m := &model.Repository{
-		Owner:    owner,
-		CloneURL: cloneURL,
-	}
-
-	err = r.repo.CreateRepository(m)
-	if err != nil {
-		return nil, err
-	}
-
-	return m, err
+func (r *repoService) CreateRepository(m *model.Repository) error {
+	return r.repo.CreateRepository(m)
 }

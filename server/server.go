@@ -10,15 +10,17 @@ import (
 )
 
 type Server struct {
-	Router  *mux.Router
-	Builder service.Builder
+	Router            *mux.Router
+	Builder           service.Builder
+	RepositoryService service.RepositoryService
 }
 
 // New initializes a server with its dependencies and registers its routes.
-func New(builder service.Builder) (*Server, error) {
+func New(builder service.Builder, repositoryService service.RepositoryService) (*Server, error) {
 	s := &Server{
-		Router:  mux.NewRouter(),
-		Builder: builder,
+		Router:            mux.NewRouter(),
+		Builder:           builder,
+		RepositoryService: repositoryService,
 	}
 
 	// register routes
@@ -43,6 +45,7 @@ func (s *Server) registerRoutes() {
 	// api routes
 	route.RegisterGithubWebhookRoutes(s.Router, s.Builder)
 	route.RegisterBuildStatusRoutes(s.Router, s.Builder)
+	route.RegisterRepositoryRoutes(s.Router, s.RepositoryService)
 
 	// frontend routes
 	route.RegisterBuildStatusFrontendRoutes(s.Router, s.Builder)

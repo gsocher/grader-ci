@@ -39,7 +39,7 @@ func createBuildsTable(db *sql.DB) error {
 		branch text NOT NULL,
 		log text,
 		status text,
-		FOREIGN KEY clone_url REFERENCES repos(clone_url)
+		FOREIGN KEY (clone_url) REFERENCES repos(clone_url)
 	);
 	`
 

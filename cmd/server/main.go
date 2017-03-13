@@ -19,9 +19,15 @@ func main() {
 		logrus.WithError(err).Fatalf("Failed to start SQLite build repo")
 	}
 
-	builder := service.NewBuilder(amqpClient, sqliteBuildRepo)
+	sqliteRepositoryRepo, err := repo.NewSQLiteRepositoryRepo(model.SQLiteFilepath)
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to start SQlite repository repo")
+	}
 
-	serv, err := server.New(builder)
+	builder := service.NewBuilder(amqpClient, sqliteBuildRepo)
+	repositoryService := service.NewRepositoryService(sqliteRepositoryRepo)
+
+	serv, err := server.New(builder, repositoryService)
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to start server")
 	}

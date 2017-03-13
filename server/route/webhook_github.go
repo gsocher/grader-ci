@@ -35,8 +35,6 @@ func parseWebhookHTTPHandler(builder service.Builder) func(rw http.ResponseWrite
 			return
 		}
 
-		logrus.WithField("req", string(body)).Infof("Received request")
-
 		var r githubWebhookRequest
 		if err = json.Unmarshal(body, &r); err != nil {
 			writeError(rw, http.StatusBadRequest, err)
