@@ -1,0 +1,14 @@
+<h1>Repositories</h1>
+<table style="width: 100%">
+  <tr>
+    <th>Clone URL</th>
+    <th>Owner</th>
+  </tr>
+
+  {{range .Repositories}}
+    <tr>
+        <td><a href="/repository/{{.CloneURL}}/builds">{{.CloneURL}}</a></td>
+        <td>{{.Owner}}</td>
+    </tr>
+  {{end}}
+</table>

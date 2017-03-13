@@ -17,6 +17,7 @@ type Builder interface {
 	GetBuildByID(id int) (*model.BuildStatus, error)
 	UpdateBuild(build *model.BuildStatus) error
 	GetBuildsBySourceRepositoryURL(cloneURL string) ([]*model.BuildStatus, error)
+	GetBuilds() ([]*model.BuildStatus, error)
 	ListenForUpdates()
 }
 
@@ -103,4 +104,8 @@ func (b *buildService) UpdateBuild(build *model.BuildStatus) error {
 
 func (b *buildService) GetBuildsBySourceRepositoryURL(cloneURL string) ([]*model.BuildStatus, error) {
 	return b.repo.GetBuildsBySourceRepositoryURL(cloneURL)
+}
+
+func (b *buildService) GetBuilds() ([]*model.BuildStatus, error) {
+	return b.repo.GetBuilds()
 }

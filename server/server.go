@@ -49,4 +49,5 @@ func (s *Server) registerRoutes() {
 
 	// frontend routes
 	route.RegisterBuildStatusFrontendRoutes(s.Router, s.Builder)
+	route.RegisterRepositoryFrontendRoutes(s.Router, s.RepositoryService)
 }

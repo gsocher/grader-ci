@@ -12,6 +12,7 @@ type BuildRepo interface {
 	UpdateBuild(m *model.BuildStatus) (int, error)
 	GetBuildByID(id int) (*model.BuildStatus, error)
 	GetBuildsBySourceRepositoryURL(cloneURL string) ([]*model.BuildStatus, error)
+	GetBuilds() ([]*model.BuildStatus, error)
 }
 
 type sqliteBuildRepo struct {
@@ -108,6 +109,35 @@ func (b *sqliteBuildRepo) GetBuildsBySourceRepositoryURL(cloneURL string) ([]*mo
 	defer stmt.Close()
 
 	rows, err := stmt.Query(cloneURL)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	res := []*model.BuildStatus{}
+	for rows.Next() {
+		m := &model.BuildStatus{}
+		err = rows.Scan(&m.ID, &m.CloneURL, &m.LastUpdate, &m.Branch, &m.Log, &m.Status)
+		if err != nil {
+			return nil, err
+		}
+
+		res = append(res, m)
+	}
+
+	return res, nil
+}
+
+func (b *sqliteBuildRepo) GetBuilds() ([]*model.BuildStatus, error) {
+	ps := `SELECT id, clone_url, date, branch, log, status FROM builds`
+	stmt, err := b.db.Prepare(ps)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
 	if err != nil {
 		return nil, err
 	}
