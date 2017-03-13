@@ -21,7 +21,8 @@ func main() {
 func createReposTable(db *sql.DB) error {
 	table := `
 	CREATE TABLE IF NOT EXISTS repos(
-		clone_url TEXT NOT NULL PRIMARY KEY
+		clone_url TEXT NOT NULL PRIMARY KEY,
+		owner TEXT NOT NULL
 	);
 	`
 
@@ -37,7 +38,8 @@ func createBuildsTable(db *sql.DB) error {
 		date DATETIME NOT NULL,
 		branch text NOT NULL,
 		log text,
-		status text
+		status text,
+		FOREIGN KEY clone_url REFERENCES repos(clone_url)
 	);
 	`
 
