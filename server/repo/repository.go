@@ -8,8 +8,9 @@ import (
 )
 
 type RepositoryRepo interface {
-	CreateRepository(cloneURL string) (*model.Repository, error)
+	CreateRepository(m *model.Repository) error
 	GetRepositoryByCloneURL(cloneURL string) (*model.Repository, error)
+	GetRepositoriesByOwner(owner string) ([]*model.Repository, error)
 }
 
 type sqliteRepositoryRepo struct {
@@ -27,24 +28,46 @@ func NewSQLiteRepositoryRepo(filePath string) (RepositoryRepo, error) {
 	}, nil
 }
 
-func (s *sqliteRepositoryRepo) CreateRepository(cloneURL string) (*model.Repository, error) {
-	ps := `INSERT INTO repos (clone_url) values (?)`
+func (s *sqliteRepositoryRepo) CreateRepository(m *model.Repository) error {
+	ps := `INSERT INTO repos (clone_url, owner) values (?, ?)`
+	stmt, err := s.db.Prepare(ps)
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+	_, err = stmt.Exec(m.CloneURL, m.Owner)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// temporarily just gets all repositories
+func (s *sqliteRepositoryRepo) GetRepositoriesByOwner(owner string) ([]*model.Repository, error) {
+	ps := `SELECT clone_url, owner FROM repos`
 	stmt, err := s.db.Prepare(ps)
 	if err != nil {
 		return nil, err
 	}
 
 	defer stmt.Close()
-	_, err = stmt.Exec(cloneURL)
+	rows, err := stmt.Query()
 	if err != nil {
 		return nil, err
 	}
 
-	m := &model.Repository{
-		CloneURL: cloneURL,
+	defer rows.Close()
+	res := []*model.Repository{}
+
+	for rows.Next() {
+		m := &model.Repository{}
+		rows.Scan(&m.CloneURL, &m.Owner)
+		res = append(res, m)
 	}
 
-	return m, nil
+	return res, nil
 }
 
 func (s *sqliteRepositoryRepo) GetRepositoryByCloneURL(cloneURL string) (*model.Repository, error) {
