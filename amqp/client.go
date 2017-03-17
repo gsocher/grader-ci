@@ -1,4 +1,4 @@
-package service
+package amqp
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 
 // Messenger can read from and write to AMQP queues.
 type Messenger interface {
-	ReadFromQueueWithCallback(queueName string, callback func(amqp.Delivery), die chan struct{}) error
+	ReadFromQueueWithCallback(queueName string, callback func([]byte), die chan struct{}) error
 	SendToQueue(queueName string, b []byte) error
 }
 
@@ -67,7 +67,7 @@ func (c *amqpClient) SendToQueue(queueName string, b []byte) error {
 
 // ReadFromQueueWithCallback is a blocking call that reads messages from a queue and invokes a given callback function
 // on each message until signaled to stop from the die channel.
-func (c *amqpClient) ReadFromQueueWithCallback(queueName string, callback func(amqp.Delivery), die chan struct{}) error {
+func (c *amqpClient) ReadFromQueueWithCallback(queueName string, callback func([]byte), die chan struct{}) error {
 	ch, err := c.conn.Channel()
 	if err != nil {
 		return fmt.Errorf("Failed to open a channel: %v", err)
@@ -103,24 +103,9 @@ func (c *amqpClient) ReadFromQueueWithCallback(queueName string, callback func(a
 	for {
 		select {
 		case m := <-msgs:
-			callback(m)
+			callback(m.Body)
 		case <-die:
 			return nil
 		}
 	}
-}
-
-func NewMockClient() Messenger {
-	return &mockClient{}
-}
-
-type mockClient struct {
-}
-
-func (m *mockClient) SendToQueue(queueName string, b []byte) error {
-	return nil
-}
-
-func (m *mockClient) ReadFromQueueWithCallback(queueName string, callback func(amqp.Delivery), die chan struct{}) error {
-	return nil
 }

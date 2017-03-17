@@ -1,111 +1,162 @@
-package service
+package repo
 
 import (
-	"encoding/json"
+	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/dpolansky/ci/model"
-	"github.com/dpolansky/ci/server/repo"
-	"github.com/sirupsen/logrus"
-	"github.com/streadway/amqp"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-// Builder represents the logic for starting and checking the status of builds.
-type Builder interface {
-	StartBuild(cloneURL, branch string) (*model.BuildStatus, error)
+type BuildReadWriter interface {
+	BuildReader
+	BuildWriter
+}
+
+type BuildReader interface {
 	GetBuildByID(id int) (*model.BuildStatus, error)
-	UpdateBuild(build *model.BuildStatus) error
 	GetBuildsBySourceRepositoryURL(cloneURL string) ([]*model.BuildStatus, error)
 	GetBuilds() ([]*model.BuildStatus, error)
-	ListenForUpdates()
+}
+
+type BuildWriter interface {
+	UpdateBuild(m *model.BuildStatus) (int, error)
 }
 
 type buildService struct {
-	log       *logrus.Entry
-	messenger Messenger
-	repo      repo.BuildRepo
+	db *sql.DB
 }
 
-func NewBuilder(m Messenger, r repo.BuildRepo) Builder {
-	log := logrus.WithField("module", "BuildService")
-
+func NewSQLiteBuildService(db *sql.DB) (BuildReadWriter, error) {
 	return &buildService{
-		log:       log,
-		messenger: m,
-		repo:      r,
-	}
+		db: db,
+	}, nil
 }
 
-func (b *buildService) ListenForUpdates() {
-	b.log.Infof("Listening for status updates")
+func (b *buildService) UpdateBuild(m *model.BuildStatus) (int, error) {
+	// check if the build exists, if it does then we are updating
+	if _, err := b.GetBuildByID(m.ID); err == nil {
+		ps := `
+		UPDATE builds SET date=?, status=?, log=? WHERE id=?
+		`
 
-	b.messenger.ReadFromQueueWithCallback(model.AMQPStatusQueue, func(msg amqp.Delivery) {
-		var build model.BuildStatus
-		err := json.Unmarshal(msg.Body, &build)
+		stmt, err := b.db.Prepare(ps)
 		if err != nil {
-			b.log.WithError(err).WithField("body", string(msg.Body)).Errorf("Failed to unmarshal status update")
-			return
+			return 0, err
 		}
 
-		err = b.UpdateBuild(&build)
-		if err != nil {
-			b.log.WithError(err).WithField("id", build.ID).Errorf("Failed to update build")
-		}
-	}, nil)
-}
-
-func (b *buildService) StartBuild(cloneURL, branch string) (*model.BuildStatus, error) {
-	build := &model.BuildStatus{
-		CloneURL: cloneURL,
-		Branch:   branch,
-		Status:   model.StatusBuildWaiting,
+		defer stmt.Close()
+		stmt.Exec(m.LastUpdate, m.Status, m.Log, m.ID)
+		return m.ID, nil
 	}
 
-	err := b.UpdateBuild(build)
-
+	// build doesn't exist, create new one
+	ps := `INSERT INTO builds(clone_url, branch, status, date, log) values (?, ?, ?, ?, ?)`
+	stmt, err := b.db.Prepare(ps)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to update status for build %+v: %v", build, err)
+		return -1, err
 	}
+	defer stmt.Close()
 
-	bytes, err := json.Marshal(build)
+	res, err := stmt.Exec(m.CloneURL, m.Branch, m.Status, m.LastUpdate, "")
 	if err != nil {
-		return nil, fmt.Errorf("Failed to marshal build to bytes: %v", err)
+		return -1, err
 	}
 
-	err = b.messenger.SendToQueue(model.AMQPBuildQueue, bytes)
+	id, err := res.LastInsertId()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to send build to queue: %v", err)
+		return -1, err
 	}
 
-	b.log.WithField("id", build.ID).Infof("Sent build")
-	return build, nil
+	return int(id), nil
 }
 
 func (b *buildService) GetBuildByID(id int) (*model.BuildStatus, error) {
-	return b.repo.GetBuildByID(id)
-}
-
-func (b *buildService) UpdateBuild(build *model.BuildStatus) error {
-	build.LastUpdate = time.Now()
-	id, err := b.repo.UpdateBuild(build)
+	ps := `SELECT id, clone_url, date, branch, log, status FROM builds WHERE id = ?`
+	stmt, err := b.db.Prepare(ps)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(id)
+	if err != nil {
+		return nil, err
 	}
 
-	b.log.WithFields(logrus.Fields{
-		"id":     build.ID,
-		"status": build.Status,
-	}).Infof("Build status updated")
+	defer rows.Close()
+	m := &model.BuildStatus{}
 
-	build.ID = id
-	return nil
+	for rows.Next() {
+		err = rows.Scan(&m.ID, &m.CloneURL, &m.LastUpdate, &m.Branch, &m.Log, &m.Status)
+		if err != nil {
+			return nil, err
+		}
+		break
+	}
+
+	// no result found
+	if m.CloneURL == "" {
+		return nil, fmt.Errorf("No build found with ID: %v", id)
+	}
+
+	return m, nil
 }
 
 func (b *buildService) GetBuildsBySourceRepositoryURL(cloneURL string) ([]*model.BuildStatus, error) {
-	return b.repo.GetBuildsBySourceRepositoryURL(cloneURL)
+	ps := `SELECT id, clone_url, date, branch, log, status FROM builds WHERE clone_url = ?`
+	stmt, err := b.db.Prepare(ps)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(cloneURL)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	res := []*model.BuildStatus{}
+	for rows.Next() {
+		m := &model.BuildStatus{}
+		err = rows.Scan(&m.ID, &m.CloneURL, &m.LastUpdate, &m.Branch, &m.Log, &m.Status)
+		if err != nil {
+			return nil, err
+		}
+
+		res = append(res, m)
+	}
+
+	return res, nil
 }
 
 func (b *buildService) GetBuilds() ([]*model.BuildStatus, error) {
-	return b.repo.GetBuilds()
+	ps := `SELECT id, clone_url, date, branch, log, status FROM builds`
+	stmt, err := b.db.Prepare(ps)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	res := []*model.BuildStatus{}
+	for rows.Next() {
+		m := &model.BuildStatus{}
+		err = rows.Scan(&m.ID, &m.CloneURL, &m.LastUpdate, &m.Branch, &m.Log, &m.Status)
+		if err != nil {
+			return nil, err
+		}
+
+		res = append(res, m)
+	}
+
+	return res, nil
 }
