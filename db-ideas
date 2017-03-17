@@ -1,0 +1,36 @@
+DATABASE TABLES
+
+USERS: id, username, salted pw hash, isAdmin
+
+1 dave (hash) false
+2 gudrun (hash) true
+
+
+REPOSITORIES: id, URL, userID, isGrader
+
+1 "github.com/dave/dave-project" 1, false
+2 "github.com/gudrun/gudrun-grading" 2, true
+
+
+ASSIGNMENTS: id, sourceID, gradeID
+1 1 2
+
+
+BUILDS: id, sourceID, gradeID, configuration, date, log, exitCode
+
+1 1 -1 "language: golang" 1/1/2017 "build passed" 0 // build the source repository
+2 1 2 "language: golang" 1/1/2017 "1 test failed" 1 // run the source against a grading script
+
+
+STUDENT FLOW:
+    - register repository
+    - build runs to ensure source can build properly
+    - adds grading script to the repository
+    - grade script triggers and will re-run on commit
+
+
+GRADER VIEW:
+
+Assignment 1
+
+dave    date    exitCode    testsFailed (click to see log output)

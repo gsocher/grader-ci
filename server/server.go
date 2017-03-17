@@ -46,8 +46,4 @@ func (s *Server) registerRoutes() {
 	route.RegisterGithubWebhookRoutes(s.Router, s.Builder)
 	route.RegisterBuildStatusRoutes(s.Router, s.Builder)
 	route.RegisterRepositoryRoutes(s.Router, s.RepositoryService)
-
-	// frontend routes
-	route.RegisterBuildStatusFrontendRoutes(s.Router, s.Builder)
-	route.RegisterRepositoryFrontendRoutes(s.Router, s.RepositoryService)
 }
