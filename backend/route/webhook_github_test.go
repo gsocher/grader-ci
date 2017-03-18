@@ -1,45 +1,33 @@
 package route
 
-import (
-	"bytes"
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
-	"testing"
+// func TestGithubWebhook(t *testing.T) {
+// 	router := mux.NewRouter()
+// 	amqpClient := service.NewMockClient()
+// 	statusRepo := repo.NewInMemoryStatusRepo()
+// 	builder := service.NewBuilder(amqpClient, statusRepo)
 
-	"github.com/dpolansky/ci/server/repo"
-	"github.com/dpolansky/ci/server/service"
-	"github.com/gorilla/mux"
-)
+// 	// add the route to the router
+// 	RegisterGithubWebhookRoutes(router, builder)
 
-func TestGithubWebhook(t *testing.T) {
-	router := mux.NewRouter()
-	amqpClient := service.NewMockClient()
-	statusRepo := repo.NewInMemoryStatusRepo()
-	builder := service.NewBuilder(amqpClient, statusRepo)
+// 	ts := httptest.NewServer(router)
+// 	defer ts.Close()
 
-	// add the route to the router
-	RegisterGithubWebhookRoutes(router, builder)
+// 	// create a test webhook payload
+// 	var payload githubWebhookRequest
+// 	payload.Repository.FullName = "docker/docker"
 
-	ts := httptest.NewServer(router)
-	defer ts.Close()
+// 	b, _ := json.Marshal(payload)
+// 	buf := bytes.NewBuffer(b)
 
-	// create a test webhook payload
-	var payload githubWebhookRequest
-	payload.Repository.FullName = "docker/docker"
+// 	// execute post
+// 	r, err := http.Post(ts.URL+pathURLGithubWebhookAPI, "application/json", buf)
+// 	if err != nil {
+// 		t.Fatalf("unexpected http client err: %v", err)
+// 	}
 
-	b, _ := json.Marshal(payload)
-	buf := bytes.NewBuffer(b)
+// 	// check error code
+// 	if r.StatusCode != http.StatusOK {
+// 		t.Fatalf("expected %v got %v", http.StatusOK, r.StatusCode)
+// 	}
 
-	// execute post
-	r, err := http.Post(ts.URL+pathURLGithubWebhookAPI, "application/json", buf)
-	if err != nil {
-		t.Fatalf("unexpected http client err: %v", err)
-	}
-
-	// check error code
-	if r.StatusCode != http.StatusOK {
-		t.Fatalf("expected %v got %v", http.StatusOK, r.StatusCode)
-	}
-
-}
+// }

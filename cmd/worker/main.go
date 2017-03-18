@@ -23,7 +23,7 @@ func failOnError(err error, msg string) {
 func main() {
 	log := logrus.New()
 
-	client, err := amqp.NewAMQPClient("amqp://guest:guest@localhost:5672/")
+	client, err := amqp.NewAMQPDefaultClient()
 	failOnError(err, "Failed to create AMQP client")
 
 	w, err := worker.New()

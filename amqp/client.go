@@ -26,6 +26,10 @@ func NewAMQPClient(url string) (Messenger, error) {
 	return c, nil
 }
 
+func NewAMQPDefaultClient() (Messenger, error) {
+	return NewAMQPClient("amqp://guest:guest@localhost:5672/")
+}
+
 type amqpClient struct {
 	conn *amqp.Connection
 }

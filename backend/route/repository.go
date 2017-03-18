@@ -6,20 +6,21 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/dpolansky/ci/backend/service"
 	"github.com/dpolansky/ci/model"
-	"github.com/dpolansky/ci/server/service"
 	"github.com/gorilla/mux"
 )
 
 const pathTokenRepositoryID = "repository_id"
-const pathTokenOwner = "owner"
+const pathTokenOwner = "owner_name"
 const pathURLRepositoryAPI = "/api/repository"
 
-func RegisterRepositoryRoutes(router *mux.Router, repositoryService service.RepositoryService) {
-	router.HandleFunc(pathURLRepositoryAPI, createRepositoryHTTPHandler(repositoryService)).Methods("POST")
+func RegisterRepositoryRoutes(router *mux.Router, rep service.RepositoryReadWriter) {
+	router.HandleFunc(pathURLRepositoryAPI,
+		createRepositoryHTTPHandler(rep)).Methods("POST")
 }
 
-func createRepositoryHTTPHandler(repositoryService service.RepositoryService) func(rw http.ResponseWriter, req *http.Request) {
+func createRepositoryHTTPHandler(rep service.RepositoryReadWriter) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
@@ -43,7 +44,7 @@ func createRepositoryHTTPHandler(repositoryService service.RepositoryService) fu
 			return
 		}
 
-		err = repositoryService.CreateRepository(&m)
+		err = rep.CreateRepository(&m)
 		if err != nil {
 			writeError(rw, http.StatusInternalServerError, fmt.Errorf("Failed to create repository: %v", err))
 			return

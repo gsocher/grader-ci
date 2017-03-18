@@ -25,7 +25,7 @@ type rep struct {
 	db *sql.DB
 }
 
-func NewSQLiteRepositoryRepo(db *sql.DB) (RepositoryReadWriter, error) {
+func NewSQLiteRepositoryReadWriter(db *sql.DB) (RepositoryReadWriter, error) {
 	return &rep{
 		db: db,
 	}, nil

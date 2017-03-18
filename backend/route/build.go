@@ -6,19 +6,20 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/dpolansky/ci/server/service"
+	"github.com/dpolansky/ci/backend/service"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
 
 const pathTokenBuildID = "build_id"
-const pathURLBuildStatusAPI = "/api/status/"
+const pathURLBuildAPI = "/api/build"
 
-func RegisterBuildStatusRoutes(router *mux.Router, builder service.Builder) {
-	router.HandleFunc(pathURLBuildStatusAPI+"{"+pathTokenBuildID+"}", getBuildStatusHTTPHandler(builder)).Methods("GET")
+func RegisterBuildRoutes(router *mux.Router, build service.BuildReadWriter) {
+	router.HandleFunc(pathURLBuildAPI+"/{"+pathTokenBuildID+"}",
+		getBuildStatusHTTPHandler(build)).Methods("GET")
 }
 
-func getBuildStatusHTTPHandler(builder service.Builder) func(rw http.ResponseWriter, req *http.Request) {
+func getBuildStatusHTTPHandler(build service.BuildReadWriter) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		id, found := vars[pathTokenBuildID]
@@ -33,7 +34,7 @@ func getBuildStatusHTTPHandler(builder service.Builder) func(rw http.ResponseWri
 			return
 		}
 
-		status, err := builder.GetBuildByID(asInt)
+		status, err := build.GetBuildByID(asInt)
 		if err != nil {
 			writeError(rw, http.StatusNotFound, err)
 			return

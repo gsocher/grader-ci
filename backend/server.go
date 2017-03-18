@@ -10,17 +10,19 @@ import (
 )
 
 type Server struct {
-	Router            *mux.Router
-	Builder           service.Builder
-	RepositoryService service.RepositoryService
+	Router               *mux.Router
+	BuildReadWriter      service.BuildReadWriter
+	BuildRunner          service.BuildRunner
+	RepositoryReadWriter service.RepositoryReadWriter
 }
 
 // New initializes a server with its dependencies and registers its routes.
-func New(builder service.Builder, repositoryService service.RepositoryService) (*Server, error) {
+func New(build service.BuildReadWriter, run service.BuildRunner, rep service.RepositoryReadWriter) (*Server, error) {
 	s := &Server{
-		Router:            mux.NewRouter(),
-		Builder:           builder,
-		RepositoryService: repositoryService,
+		Router:               mux.NewRouter(),
+		BuildReadWriter:      build,
+		RepositoryReadWriter: rep,
+		BuildRunner:          run,
 	}
 
 	// register routes
@@ -36,14 +38,14 @@ func (s *Server) Serve() {
 	}
 
 	logrus.Infof("Starting server on %v", serv.Addr)
-	go s.Builder.ListenForUpdates()
+	go s.BuildRunner.ListenForUpdates()
 
 	logrus.Fatalf("Server shut down: %v\n", serv.ListenAndServe())
 }
 
 func (s *Server) registerRoutes() {
 	// api routes
-	route.RegisterGithubWebhookRoutes(s.Router, s.Builder)
-	route.RegisterBuildStatusRoutes(s.Router, s.Builder)
-	route.RegisterRepositoryRoutes(s.Router, s.RepositoryService)
+	route.RegisterGithubWebhookRoutes(s.Router, s.BuildRunner)
+	route.RegisterBuildRoutes(s.Router, s.BuildReadWriter)
+	route.RegisterRepositoryRoutes(s.Router, s.RepositoryReadWriter)
 }
