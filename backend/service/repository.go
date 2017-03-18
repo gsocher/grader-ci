@@ -7,30 +7,37 @@ import (
 	"github.com/dpolansky/ci/model"
 )
 
-type RepositoryRepo interface {
-	CreateRepository(m *model.Repository) error
+type RepositoryReader interface {
 	GetRepositoryByCloneURL(cloneURL string) (*model.Repository, error)
 	GetRepositoriesByOwner(owner string) ([]*model.Repository, error)
 }
 
-type sqliteRepositoryRepo struct {
+type RepositoryWriter interface {
+	CreateRepository(m *model.Repository) error
+}
+
+type RepositoryReadWriter interface {
+	RepositoryReader
+	RepositoryWriter
+}
+
+type rep struct {
 	db *sql.DB
 }
 
-func NewSQLiteRepositoryRepo(filePath string) (RepositoryRepo, error) {
-	db, err := sql.Open("sqlite3", filePath)
-	if err != nil {
-		return nil, err
-	}
-
-	return &sqliteRepositoryRepo{
+func NewSQLiteRepositoryRepo(db *sql.DB) (RepositoryReadWriter, error) {
+	return &rep{
 		db: db,
 	}, nil
 }
 
-func (s *sqliteRepositoryRepo) CreateRepository(m *model.Repository) error {
+func (r *rep) CreateRepository(m *model.Repository) error {
+	return r.createRepositoryInDB(m)
+}
+
+func (r *rep) createRepositoryInDB(m *model.Repository) error {
 	ps := `INSERT INTO repos (clone_url, owner) values (?, ?)`
-	stmt, err := s.db.Prepare(ps)
+	stmt, err := r.db.Prepare(ps)
 	if err != nil {
 		return err
 	}
@@ -44,10 +51,13 @@ func (s *sqliteRepositoryRepo) CreateRepository(m *model.Repository) error {
 	return nil
 }
 
-// temporarily just gets all repositories
-func (s *sqliteRepositoryRepo) GetRepositoriesByOwner(owner string) ([]*model.Repository, error) {
-	ps := `SELECT clone_url, owner FROM repos`
-	stmt, err := s.db.Prepare(ps)
+func (r *rep) GetRepositoriesByOwner(owner string) ([]*model.Repository, error) {
+	return r.getRepositoriesByOwnerInDB(owner)
+}
+
+func (r *rep) getRepositoriesByOwnerInDB(owner string) ([]*model.Repository, error) {
+	ps := `SELECT clone_url, owner FROM repos order by clone_url asc`
+	stmt, err := r.db.Prepare(ps)
 	if err != nil {
 		return nil, err
 	}
@@ -70,9 +80,13 @@ func (s *sqliteRepositoryRepo) GetRepositoriesByOwner(owner string) ([]*model.Re
 	return res, nil
 }
 
-func (s *sqliteRepositoryRepo) GetRepositoryByCloneURL(cloneURL string) (*model.Repository, error) {
-	ps := `SELECT clone_url FROM repos WHERE clone_url = ?`
-	stmt, err := s.db.Prepare(ps)
+func (r *rep) GetRepositoryByCloneURL(cloneURL string) (*model.Repository, error) {
+	return r.getRepositoryByCloneURLInDB(cloneURL)
+}
+
+func (r *rep) getRepositoryByCloneURLInDB(cloneURL string) (*model.Repository, error) {
+	ps := `SELECT clone_url, owner FROM repos WHERE clone_url = ?`
+	stmt, err := r.db.Prepare(ps)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +101,7 @@ func (s *sqliteRepositoryRepo) GetRepositoryByCloneURL(cloneURL string) (*model.
 	m := &model.Repository{}
 
 	for rows.Next() {
-		rows.Scan(&m.CloneURL)
+		rows.Scan(&m.CloneURL, m.Owner)
 		break
 	}
 
