@@ -1,11 +1,10 @@
 package main
 
 import (
+	"github.com/docker/docker/api/server"
+	"github.com/dpolansky/ci/backend/service"
 	"github.com/dpolansky/ci/model"
-	"github.com/dpolansky/ci/server"
-	"github.com/dpolansky/ci/server/repo"
-	"github.com/dpolansky/ci/server/service"
-	"github.com/sirupsen/logrus"
+	"github.com/dpolansky/ci/backend"
 )
 
 func main() {

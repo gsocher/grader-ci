@@ -1,8 +1,9 @@
-package repo
+package service
 
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/dpolansky/ci/model"
 	_ "github.com/mattn/go-sqlite3"
@@ -20,22 +21,41 @@ type BuildReader interface {
 }
 
 type BuildWriter interface {
-	UpdateBuild(m *model.BuildStatus) (int, error)
+	UpdateBuild(m *model.BuildStatus) (*model.BuildStatus, error)
 }
 
-type buildService struct {
+type builder struct {
 	db *sql.DB
 }
 
-func NewSQLiteBuildService(db *sql.DB) (BuildReadWriter, error) {
-	return &buildService{
+func NewSQLiteBuildReadWriter(db *sql.DB) (BuildReadWriter, error) {
+	return &builder{
 		db: db,
 	}, nil
 }
 
-func (b *buildService) UpdateBuild(m *model.BuildStatus) (int, error) {
+func (b *builder) UpdateBuild(m *model.BuildStatus) (*model.BuildStatus, error) {
+	m.LastUpdate = time.Now()
+	id, err := b.updateBuildInDB(m)
+	if err != nil {
+		return nil, err
+	}
+
+	m.ID = id
+	return m, nil
+}
+
+func (b *builder) GetBuildByID(id int) (*model.BuildStatus, error) {
+	return b.getBuildByIDInDB(id)
+}
+
+func (b *builder) GetBuilds() ([]*model.BuildStatus, error) {
+	return b.getAllBuildsInDB()
+}
+
+func (b *builder) updateBuildInDB(m *model.BuildStatus) (int, error) {
 	// check if the build exists, if it does then we are updating
-	if _, err := b.GetBuildByID(m.ID); err == nil {
+	if _, err := b.getBuildByIDInDB(m.ID); err == nil {
 		ps := `
 		UPDATE builds SET date=?, status=?, log=? WHERE id=?
 		`
@@ -71,7 +91,7 @@ func (b *buildService) UpdateBuild(m *model.BuildStatus) (int, error) {
 	return int(id), nil
 }
 
-func (b *buildService) GetBuildByID(id int) (*model.BuildStatus, error) {
+func (b *builder) getBuildByIDInDB(id int) (*model.BuildStatus, error) {
 	ps := `SELECT id, clone_url, date, branch, log, status FROM builds WHERE id = ?`
 	stmt, err := b.db.Prepare(ps)
 	if err != nil {
@@ -103,7 +123,7 @@ func (b *buildService) GetBuildByID(id int) (*model.BuildStatus, error) {
 	return m, nil
 }
 
-func (b *buildService) GetBuildsBySourceRepositoryURL(cloneURL string) ([]*model.BuildStatus, error) {
+func (b *builder) GetBuildsBySourceRepositoryURL(cloneURL string) ([]*model.BuildStatus, error) {
 	ps := `SELECT id, clone_url, date, branch, log, status FROM builds WHERE clone_url = ?`
 	stmt, err := b.db.Prepare(ps)
 	if err != nil {
@@ -132,7 +152,7 @@ func (b *buildService) GetBuildsBySourceRepositoryURL(cloneURL string) ([]*model
 	return res, nil
 }
 
-func (b *buildService) GetBuilds() ([]*model.BuildStatus, error) {
+func (b *builder) getAllBuildsInDB() ([]*model.BuildStatus, error) {
 	ps := `SELECT id, clone_url, date, branch, log, status FROM builds`
 	stmt, err := b.db.Prepare(ps)
 	if err != nil {

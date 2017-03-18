@@ -30,6 +30,9 @@ _testmain.go
 # vscode
 .vscode/
 
+# intellij
+.idea/
+
 # vagrant
 .vagrant/
 
