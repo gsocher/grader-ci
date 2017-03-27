@@ -1,0 +1,62 @@
+{
+	"variables": [],
+	"info": {
+		"name": "ci",
+		"_postman_id": "accb8079-423b-f089-1df6-570dfeec44da",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Github Webhook",
+			"request": {
+				"url": "localhost:8080/api/github",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"ref\" : \"refs/heads/failed\",\n\t\"repository\" : {\n\t\t\"full_name\" : \"dpolansky/ci-test-repos\"\n\t}\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Get Build Status By ID",
+			"request": {
+				"url": "localhost:8080/api/status/id",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Create Repository",
+			"request": {
+				"url": "localhost:8080/api/repository",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"cloneURL\" : \"https://github.com/dpolansky/ci-test-repos\",\n\t\"owner\" : \"admin\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}
