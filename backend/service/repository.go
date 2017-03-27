@@ -15,7 +15,7 @@ type RepositoryReader interface {
 }
 
 type RepositoryWriter interface {
-	CreateRepository(m *model.Repository) error
+	UpdateRepository(m *model.Repository) error
 }
 
 type RepositoryReadWriter interface {
@@ -33,15 +33,17 @@ func NewSQLiteRepositoryReadWriter(db *sql.DB) (RepositoryReadWriter, error) {
 	}, nil
 }
 
-func (r *rep) CreateRepository(m *model.Repository) error {
-	ps := `INSERT INTO repos (clone_url, owner) values (?, ?)`
+// TODO: use github repository ID rather than clone_url to support repository/owner changes?
+
+func (r *rep) UpdateRepository(m *model.Repository) error {
+	ps := `INSERT OR REPLACE INTO repos (clone_url, owner, avatar_url) values (?, ?, ?)`
 	stmt, err := r.db.Prepare(ps)
 	if err != nil {
 		return err
 	}
 
 	defer stmt.Close()
-	_, err = stmt.Exec(m.CloneURL, m.Owner)
+	_, err = stmt.Exec(m.CloneURL, m.Owner, m.AvatarURL)
 	if err != nil {
 		return err
 	}
@@ -50,7 +52,7 @@ func (r *rep) CreateRepository(m *model.Repository) error {
 }
 
 func (r *rep) GetRepositories() ([]*model.Repository, error) {
-	ps := `SELECT clone_url, owner FROM repos`
+	ps := `SELECT clone_url, owner, avatar_url FROM repos`
 	stmt, err := r.db.Prepare(ps)
 	if err != nil {
 		return nil, err
@@ -67,7 +69,7 @@ func (r *rep) GetRepositories() ([]*model.Repository, error) {
 
 	for rows.Next() {
 		m := &model.Repository{}
-		rows.Scan(&m.CloneURL, &m.Owner)
+		rows.Scan(&m.CloneURL, &m.Owner, &m.AvatarURL)
 		res = append(res, m)
 	}
 
@@ -79,7 +81,7 @@ func (r *rep) GetRepositories() ([]*model.Repository, error) {
 }
 
 func (r *rep) GetRepositoriesByOwner(owner string) ([]*model.Repository, error) {
-	ps := `SELECT clone_url, owner FROM repos where owner = ?`
+	ps := `SELECT clone_url, owner, avatar_url FROM repos where owner = ?`
 	stmt, err := r.db.Prepare(ps)
 	if err != nil {
 		return nil, err
@@ -96,7 +98,7 @@ func (r *rep) GetRepositoriesByOwner(owner string) ([]*model.Repository, error) 
 
 	for rows.Next() {
 		m := &model.Repository{}
-		rows.Scan(&m.CloneURL, &m.Owner)
+		rows.Scan(&m.CloneURL, &m.Owner, &m.AvatarURL)
 		res = append(res, m)
 	}
 
@@ -108,7 +110,7 @@ func (r *rep) GetRepositoriesByOwner(owner string) ([]*model.Repository, error) 
 }
 
 func (r *rep) GetRepositoryByCloneURL(cloneURL string) (*model.Repository, error) {
-	ps := `SELECT clone_url, owner FROM repos WHERE clone_url = ?`
+	ps := `SELECT clone_url, owner, avatar_url FROM repos WHERE clone_url = ?`
 	stmt, err := r.db.Prepare(ps)
 	if err != nil {
 		return nil, err
@@ -124,7 +126,7 @@ func (r *rep) GetRepositoryByCloneURL(cloneURL string) (*model.Repository, error
 	m := &model.Repository{}
 
 	for rows.Next() {
-		rows.Scan(&m.CloneURL, m.Owner)
+		rows.Scan(&m.CloneURL, m.Owner, &m.AvatarURL)
 		break
 	}
 

@@ -45,7 +45,7 @@ func (s *Server) Serve() {
 
 func (s *Server) registerRoutes() {
 	// api routes
-	route.RegisterGithubWebhookRoutes(s.Router, s.BuildRunner)
+	route.RegisterGithubWebhookRoutes(s.Router, s.BuildRunner, s.RepositoryReadWriter)
 	route.RegisterBuildRoutes(s.Router, s.BuildReadWriter)
 	route.RegisterRepositoryRoutes(s.Router, s.RepositoryReadWriter)
 }

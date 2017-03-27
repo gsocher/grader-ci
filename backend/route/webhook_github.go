@@ -16,20 +16,24 @@ import (
 
 const pathURLGithubWebhookAPI = "/api/webhook/github"
 
-func RegisterGithubWebhookRoutes(router *mux.Router, run service.BuildRunner) {
+func RegisterGithubWebhookRoutes(router *mux.Router, run service.BuildRunner, rep service.RepositoryReadWriter) {
 	router.HandleFunc(pathURLGithubWebhookAPI,
-		parseWebhookHTTPHandler(run)).Methods("POST")
+		parseWebhookHTTPHandler(run, rep)).Methods("POST")
 }
 
 type githubWebhookRequest struct {
 	Ref        string `json:"ref"`
 	Repository struct {
 		FullName string `json:"full_name"`
+		Owner    struct {
+			Name      string `json:"name"`
+			AvatarURL string `json:"avatar_url"`
+		} `json:"owner"`
 	} `json:"repository"`
 }
 
 // parseWebhookHTTPHandler is an endpoint for receiving github webhook requests.
-func parseWebhookHTTPHandler(run service.BuildRunner) func(rw http.ResponseWriter, req *http.Request) {
+func parseWebhookHTTPHandler(run service.BuildRunner, rep service.RepositoryReadWriter) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
@@ -46,6 +50,15 @@ func parseWebhookHTTPHandler(run service.BuildRunner) func(rw http.ResponseWrite
 		m := &model.BuildStatus{
 			CloneURL: fmt.Sprintf("https://github.com/%s", r.Repository.FullName),
 			Branch:   filepath.Base(r.Ref),
+		}
+
+		if err = rep.UpdateRepository(&model.Repository{
+			CloneURL:  m.CloneURL,
+			Owner:     r.Repository.Owner.Name,
+			AvatarURL: r.Repository.Owner.AvatarURL,
+		}); err != nil {
+			writeError(rw, http.StatusInternalServerError, err)
+			return
 		}
 
 		status, err := run.RunBuild(m)

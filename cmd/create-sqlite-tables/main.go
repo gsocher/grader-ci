@@ -22,7 +22,8 @@ func createReposTable(db *sql.DB) error {
 	table := `
 	CREATE TABLE IF NOT EXISTS repos(
 		clone_url TEXT NOT NULL PRIMARY KEY,
-		owner TEXT NOT NULL
+		owner TEXT NOT NULL,
+		avatar_url TEXT NOT NULL
 	);
 	`
 

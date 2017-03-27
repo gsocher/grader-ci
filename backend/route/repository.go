@@ -49,7 +49,7 @@ func createRepositoryHTTPHandler(rep service.RepositoryReadWriter) func(rw http.
 			return
 		}
 
-		err = rep.CreateRepository(&m)
+		err = rep.UpdateRepository(&m)
 		if err != nil {
 			writeError(rw, http.StatusInternalServerError, fmt.Errorf("Failed to create repository: %v", err))
 			return
