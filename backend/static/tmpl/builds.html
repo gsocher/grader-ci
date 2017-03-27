@@ -8,7 +8,14 @@
   </head>
 
   <body>
-    <h1 class="top-header">Builds</h1>
+    <h1 class="top-header">
+      <div>
+        <img class="avatar-thumbnail" src="{{.Repository.AvatarURL}}"> {{.Repository.Owner}} - {{.Repository.Name}}
+      </div>
+    </h1>
+    
+    <h2 class="top-header">Builds</h2>
+
     
     <table class="builds-table">
       <tr class="top-row">

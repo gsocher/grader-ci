@@ -10,13 +10,14 @@ import (
 	"strconv"
 
 	"github.com/dpolansky/ci/backend/service"
+	"github.com/dpolansky/ci/model"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/gorilla/mux"
 )
 
-func RegisterBuildFrontendRoutes(router *mux.Router, build service.BuildReader) {
+func RegisterBuildFrontendRoutes(router *mux.Router, build service.BuildReader, rep service.RepositoryReadWriter) {
 	router.HandleFunc("/{"+pathTokenRepositoryID+"}"+pathURLBuildsByRepositoryID,
-		getBuildsByRepositoryIDTemplateHTTPHandler(build)).Methods("GET")
+		getBuildsByRepositoryIDTemplateHTTPHandler(build, rep)).Methods("GET")
 }
 
 func RegisterBuildAPIRoutes(router *mux.Router, build service.BuildReader) {
@@ -27,7 +28,7 @@ func RegisterBuildAPIRoutes(router *mux.Router, build service.BuildReader) {
 		getBuildsByRepositoryIDHTTPHandler(build)).Methods("GET")
 }
 
-func getBuildsByRepositoryIDTemplateHTTPHandler(build service.BuildReader) func(rw http.ResponseWriter, req *http.Request) {
+func getBuildsByRepositoryIDTemplateHTTPHandler(build service.BuildReader, rep service.RepositoryReader) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		id, found := vars[pathTokenRepositoryID]
@@ -39,6 +40,12 @@ func getBuildsByRepositoryIDTemplateHTTPHandler(build service.BuildReader) func(
 		asInt, err := strconv.Atoi(id)
 		if err != nil {
 			writeError(rw, http.StatusBadRequest, fmt.Errorf("Repository ID is not a number: %v", id))
+			return
+		}
+
+		repo, err := rep.GetRepositoryByID(asInt)
+		if err != nil {
+			writeError(rw, http.StatusBadRequest, fmt.Errorf("Repository with ID %v could not be found: %v", asInt, err))
 			return
 		}
 
@@ -70,7 +77,10 @@ func getBuildsByRepositoryIDTemplateHTTPHandler(build service.BuildReader) func(
 
 		tempPath := filepath.Join(os.Getenv("GOPATH"), templatesDirPathFromGOPATH, "builds.html")
 		tmpl := template.Must(template.ParseFiles(tempPath))
-		tmpl.Execute(rw, struct{ Builds []*BuildStatus }{result})
+		tmpl.Execute(rw, struct {
+			Builds     []*BuildStatus
+			Repository *model.Repository
+		}{result, repo})
 	}
 }
 

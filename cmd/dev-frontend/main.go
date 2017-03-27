@@ -24,7 +24,7 @@ func main() {
 
 	router := mux.NewRouter()
 	route.RegisterRepositoryFrontendRoutes(router, rep)
-	route.RegisterBuildFrontendRoutes(router, build)
+	route.RegisterBuildFrontendRoutes(router, build, rep)
 	route.RegisterAssetsRoute(router)
 
 	serv := &http.Server{
