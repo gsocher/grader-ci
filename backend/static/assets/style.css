@@ -1,0 +1,31 @@
+html {
+    background-image: linear-gradient(#1C242D, #222B34);
+    font-family: Lucida Grande, Tahoma, Verdana, Arial, sans-serif;
+    font-size: 14px;
+}
+
+td {
+    vertical-align: baseline;
+}
+
+.repos-table {
+    margin-left: auto;
+    margin-right: auto;
+    border-spacing: 10px;
+}
+
+.repos-table-top-row {
+    font-size: 12px;
+    color: #ffffff
+}
+
+.repos-table-row {
+    color: #a9cf54;
+}
+
+.avatar-thumbnail {
+    width: 48px;
+    height: 48px;
+    vertical-align: middle;
+    padding-right: 20px;
+}

@@ -51,4 +51,7 @@ func (s *Server) registerRoutes() {
 
 	// frontend routes
 	route.RegisterRepositoryFrontendRoutes(s.Router, s.RepositoryReadWriter)
+
+	// assets route
+	route.RegisterAssetsRoute(s.Router)
 }

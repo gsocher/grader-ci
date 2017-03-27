@@ -17,7 +17,7 @@ import (
 const pathTokenOwner = "owner_name"
 const pathURLRepositoryAPI = "/api/repository"
 const pathURLRepositoryList = "/"
-const templatesDirPathFromGOPATH = "/src/github.com/dpolansky/ci/backend/tmpl"
+const templatesDirPathFromGOPATH = "/src/github.com/dpolansky/ci/backend/static/tmpl"
 
 func RegisterRepositoryFrontendRoutes(router *mux.Router, rep service.RepositoryReadWriter) {
 	router.HandleFunc(pathURLRepositoryList,
