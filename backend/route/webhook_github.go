@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-
 	"path/filepath"
 
 	"github.com/dpolansky/ci/backend/service"
@@ -13,8 +12,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
-
-const pathURLGithubWebhookAPI = "/api/webhook/github"
 
 func RegisterGithubWebhookRoutes(router *mux.Router, run service.BuildRunner, rep service.RepositoryReadWriter) {
 	router.HandleFunc(pathURLGithubWebhookAPI,
@@ -24,8 +21,9 @@ func RegisterGithubWebhookRoutes(router *mux.Router, run service.BuildRunner, re
 type githubWebhookRequest struct {
 	Ref        string `json:"ref"`
 	Repository struct {
-		FullName string `json:"full_name"`
-		Owner    struct {
+		ID    int    `json:"id"`
+		Name  string `json:"name"`
+		Owner struct {
 			Name      string `json:"name"`
 			AvatarURL string `json:"avatar_url"`
 		} `json:"owner"`
@@ -47,18 +45,22 @@ func parseWebhookHTTPHandler(run service.BuildRunner, rep service.RepositoryRead
 			return
 		}
 
-		m := &model.BuildStatus{
-			CloneURL: fmt.Sprintf("https://github.com/%s", r.Repository.FullName),
-			Branch:   filepath.Base(r.Ref),
-		}
-
-		if err = rep.UpdateRepository(&model.Repository{
-			CloneURL:  m.CloneURL,
+		repo := &model.Repository{
+			ID:        r.Repository.ID,
+			Name:      r.Repository.Name,
 			Owner:     r.Repository.Owner.Name,
 			AvatarURL: r.Repository.Owner.AvatarURL,
-		}); err != nil {
+		}
+
+		if err = rep.UpdateRepository(repo); err != nil {
 			writeError(rw, http.StatusInternalServerError, err)
 			return
+		}
+
+		m := &model.BuildStatus{
+			CloneURL:     fmt.Sprintf("https://github.com/%s/%s", r.Repository.Owner.Name, r.Repository.Name),
+			Branch:       filepath.Base(r.Ref),
+			RepositoryID: repo.ID,
 		}
 
 		status, err := run.RunBuild(m)

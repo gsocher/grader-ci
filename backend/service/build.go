@@ -16,7 +16,7 @@ type BuildReadWriter interface {
 
 type BuildReader interface {
 	GetBuildByID(id int) (*model.BuildStatus, error)
-	GetBuildsBySourceRepositoryURL(cloneURL string) ([]*model.BuildStatus, error)
+	GetBuildsByRepositoryID(id int) ([]*model.BuildStatus, error)
 	GetBuilds() ([]*model.BuildStatus, error)
 }
 
@@ -36,16 +36,7 @@ func NewSQLiteBuildReadWriter(db *sql.DB) (BuildReadWriter, error) {
 
 func (b *builder) UpdateBuild(m *model.BuildStatus) (*model.BuildStatus, error) {
 	m.LastUpdate = time.Now()
-	id, err := b.updateBuildInDB(m)
-	if err != nil {
-		return nil, err
-	}
 
-	m.ID = id
-	return m, nil
-}
-
-func (b *builder) updateBuildInDB(m *model.BuildStatus) (int, error) {
 	// check if the build exists, if it does then we are updating
 	if _, err := b.GetBuildByID(m.ID); err == nil {
 		ps := `
@@ -54,37 +45,38 @@ func (b *builder) updateBuildInDB(m *model.BuildStatus) (int, error) {
 
 		stmt, err := b.db.Prepare(ps)
 		if err != nil {
-			return 0, err
+			return nil, err
 		}
 
 		defer stmt.Close()
 		stmt.Exec(m.LastUpdate, m.Status, m.Log, m.ID)
-		return m.ID, nil
+		return m, nil
 	}
 
 	// build doesn't exist, create new one
-	ps := `INSERT INTO builds(clone_url, branch, status, date, log) values (?, ?, ?, ?, ?)`
+	ps := `INSERT INTO builds(repo_id, clone_url, branch, status, date, log) values (?, ?, ?, ?, ?, ?)`
 	stmt, err := b.db.Prepare(ps)
 	if err != nil {
-		return -1, err
+		return nil, err
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(m.CloneURL, m.Branch, m.Status, m.LastUpdate, "")
+	res, err := stmt.Exec(m.RepositoryID, m.CloneURL, m.Branch, m.Status, m.LastUpdate, "")
 	if err != nil {
-		return -1, err
+		return nil, err
 	}
 
 	id, err := res.LastInsertId()
 	if err != nil {
-		return -1, err
+		return nil, err
 	}
 
-	return int(id), nil
+	m.ID = int(id)
+	return m, nil
 }
 
 func (b *builder) GetBuildByID(id int) (*model.BuildStatus, error) {
-	ps := `SELECT id, clone_url, date, branch, log, status FROM builds WHERE id = ?`
+	ps := `SELECT id, repo_id, clone_url, date, branch, log, status FROM builds WHERE id = ?`
 	stmt, err := b.db.Prepare(ps)
 	if err != nil {
 		return nil, err
@@ -100,7 +92,7 @@ func (b *builder) GetBuildByID(id int) (*model.BuildStatus, error) {
 	m := &model.BuildStatus{}
 
 	for rows.Next() {
-		err = rows.Scan(&m.ID, &m.CloneURL, &m.LastUpdate, &m.Branch, &m.Log, &m.Status)
+		err = rows.Scan(&m.ID, &m.RepositoryID, &m.CloneURL, &m.LastUpdate, &m.Branch, &m.Log, &m.Status)
 		if err != nil {
 			return nil, err
 		}
@@ -115,15 +107,15 @@ func (b *builder) GetBuildByID(id int) (*model.BuildStatus, error) {
 	return m, nil
 }
 
-func (b *builder) GetBuildsBySourceRepositoryURL(cloneURL string) ([]*model.BuildStatus, error) {
-	ps := `SELECT id, clone_url, date, branch, log, status FROM builds WHERE clone_url = ?`
+func (b *builder) GetBuildsByRepositoryID(id int) ([]*model.BuildStatus, error) {
+	ps := `SELECT id, repo_id, clone_url, date, branch, log, status FROM builds WHERE repo_id = ?`
 	stmt, err := b.db.Prepare(ps)
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(cloneURL)
+	rows, err := stmt.Query(id)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +125,7 @@ func (b *builder) GetBuildsBySourceRepositoryURL(cloneURL string) ([]*model.Buil
 	res := []*model.BuildStatus{}
 	for rows.Next() {
 		m := &model.BuildStatus{}
-		err = rows.Scan(&m.ID, &m.CloneURL, &m.LastUpdate, &m.Branch, &m.Log, &m.Status)
+		err = rows.Scan(&m.ID, &m.RepositoryID, &m.CloneURL, &m.LastUpdate, &m.Branch, &m.Log, &m.Status)
 		if err != nil {
 			return nil, err
 		}
@@ -145,7 +137,7 @@ func (b *builder) GetBuildsBySourceRepositoryURL(cloneURL string) ([]*model.Buil
 }
 
 func (b *builder) GetBuilds() ([]*model.BuildStatus, error) {
-	ps := `SELECT id, clone_url, date, branch, log, status FROM builds`
+	ps := `SELECT id, repo_id, clone_url, date, branch, log, status FROM builds`
 	stmt, err := b.db.Prepare(ps)
 	if err != nil {
 		return nil, err
@@ -162,7 +154,7 @@ func (b *builder) GetBuilds() ([]*model.BuildStatus, error) {
 	res := []*model.BuildStatus{}
 	for rows.Next() {
 		m := &model.BuildStatus{}
-		err = rows.Scan(&m.ID, &m.CloneURL, &m.LastUpdate, &m.Branch, &m.Log, &m.Status)
+		err = rows.Scan(&m.ID, &m.RepositoryID, &m.CloneURL, &m.LastUpdate, &m.Branch, &m.Log, &m.Status)
 		if err != nil {
 			return nil, err
 		}

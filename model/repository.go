@@ -1,7 +1,8 @@
 package model
 
 type Repository struct {
-	CloneURL  string
-	Owner     string
-	AvatarURL string
+	ID        int    `json:"id"`
+	Owner     string `json:"owner"`
+	Name      string `json:"name"`
+	AvatarURL string `json:"avatar_url"`
 }

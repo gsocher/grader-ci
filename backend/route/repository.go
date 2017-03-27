@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -14,9 +13,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const pathTokenOwner = "owner_name"
-const pathURLRepositoryAPI = "/api/repository"
-const pathURLRepositoryList = "/"
 const templatesDirPathFromGOPATH = "/src/github.com/dpolansky/ci/backend/static/tmpl"
 
 func RegisterRepositoryFrontendRoutes(router *mux.Router, rep service.RepositoryReadWriter) {
@@ -25,9 +21,6 @@ func RegisterRepositoryFrontendRoutes(router *mux.Router, rep service.Repository
 }
 
 func RegisterRepositoryAPIRoutes(router *mux.Router, rep service.RepositoryReadWriter) {
-	router.HandleFunc(pathURLRepositoryAPI,
-		createRepositoryHTTPHandler(rep)).Methods("POST")
-
 	router.HandleFunc(pathURLRepositoryAPI,
 		getRepositoriesHTTPHandler(rep)).Methods("GET")
 
@@ -46,41 +39,6 @@ func getRepositoryListTemplateHTTPHandler(rep service.RepositoryReadWriter) func
 		tempPath := filepath.Join(os.Getenv("GOPATH"), templatesDirPathFromGOPATH, "repositories.html")
 		tmpl := template.Must(template.ParseFiles(tempPath))
 		tmpl.Execute(rw, struct{ Repositories []*model.Repository }{reps})
-	}
-}
-
-func createRepositoryHTTPHandler(rep service.RepositoryReadWriter) func(rw http.ResponseWriter, req *http.Request) {
-	return func(rw http.ResponseWriter, req *http.Request) {
-		body, err := ioutil.ReadAll(req.Body)
-		if err != nil {
-			writeError(rw, http.StatusBadRequest, err)
-			return
-		}
-
-		var m model.Repository
-		if err = json.Unmarshal(body, &m); err != nil {
-			writeError(rw, http.StatusBadRequest, err)
-			return
-		}
-
-		if m.CloneURL == "" {
-			writeError(rw, http.StatusBadRequest, fmt.Errorf("Missing cloneURL"))
-			return
-		}
-
-		if m.Owner == "" {
-			writeError(rw, http.StatusBadRequest, fmt.Errorf("Missing owner"))
-			return
-		}
-
-		err = rep.UpdateRepository(&m)
-		if err != nil {
-			writeError(rw, http.StatusInternalServerError, fmt.Errorf("Failed to create repository: %v", err))
-			return
-		}
-
-		b, _ := json.Marshal(m)
-		writeOk(rw, b)
 	}
 }
 

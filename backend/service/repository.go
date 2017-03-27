@@ -9,7 +9,7 @@ import (
 )
 
 type RepositoryReader interface {
-	GetRepositoryByCloneURL(cloneURL string) (*model.Repository, error)
+	GetRepositoryByID(id int) (*model.Repository, error)
 	GetRepositoriesByOwner(owner string) ([]*model.Repository, error)
 	GetRepositories() ([]*model.Repository, error)
 }
@@ -33,17 +33,15 @@ func NewSQLiteRepositoryReadWriter(db *sql.DB) (RepositoryReadWriter, error) {
 	}, nil
 }
 
-// TODO: use github repository ID rather than clone_url to support repository/owner changes?
-
 func (r *rep) UpdateRepository(m *model.Repository) error {
-	ps := `INSERT OR REPLACE INTO repos (clone_url, owner, avatar_url) values (?, ?, ?)`
+	ps := `INSERT OR REPLACE INTO repos (id, owner, name, avatar_url) values (?, ?, ?, ?)`
 	stmt, err := r.db.Prepare(ps)
 	if err != nil {
 		return err
 	}
 
 	defer stmt.Close()
-	_, err = stmt.Exec(m.CloneURL, m.Owner, m.AvatarURL)
+	_, err = stmt.Exec(m.ID, m.Owner, m.Name, m.AvatarURL)
 	if err != nil {
 		return err
 	}
@@ -52,7 +50,7 @@ func (r *rep) UpdateRepository(m *model.Repository) error {
 }
 
 func (r *rep) GetRepositories() ([]*model.Repository, error) {
-	ps := `SELECT clone_url, owner, avatar_url FROM repos`
+	ps := `SELECT id, owner, name, avatar_url FROM repos`
 	stmt, err := r.db.Prepare(ps)
 	if err != nil {
 		return nil, err
@@ -69,19 +67,19 @@ func (r *rep) GetRepositories() ([]*model.Repository, error) {
 
 	for rows.Next() {
 		m := &model.Repository{}
-		rows.Scan(&m.CloneURL, &m.Owner, &m.AvatarURL)
+		rows.Scan(&m.ID, &m.Owner, &m.Name, &m.AvatarURL)
 		res = append(res, m)
 	}
 
 	sort.Slice(res, func(i, j int) bool {
-		return res[i].CloneURL < res[j].CloneURL
+		return res[i].ID < res[j].ID
 	})
 
 	return res, nil
 }
 
 func (r *rep) GetRepositoriesByOwner(owner string) ([]*model.Repository, error) {
-	ps := `SELECT clone_url, owner, avatar_url FROM repos where owner = ?`
+	ps := `SELECT id, owner, name, avatar_url FROM repos where owner = ?`
 	stmt, err := r.db.Prepare(ps)
 	if err != nil {
 		return nil, err
@@ -98,26 +96,26 @@ func (r *rep) GetRepositoriesByOwner(owner string) ([]*model.Repository, error) 
 
 	for rows.Next() {
 		m := &model.Repository{}
-		rows.Scan(&m.CloneURL, &m.Owner, &m.AvatarURL)
+		rows.Scan(&m.ID, &m.Owner, &m.Name, &m.AvatarURL)
 		res = append(res, m)
 	}
 
 	sort.Slice(res, func(i, j int) bool {
-		return res[i].CloneURL < res[j].CloneURL
+		return res[i].ID < res[j].ID
 	})
 
 	return res, nil
 }
 
-func (r *rep) GetRepositoryByCloneURL(cloneURL string) (*model.Repository, error) {
-	ps := `SELECT clone_url, owner, avatar_url FROM repos WHERE clone_url = ?`
+func (r *rep) GetRepositoryByID(id int) (*model.Repository, error) {
+	ps := `SELECT id, owner, name, avatar_url FROM repos WHERE id = ?`
 	stmt, err := r.db.Prepare(ps)
 	if err != nil {
 		return nil, err
 	}
 
 	defer stmt.Close()
-	rows, err := stmt.Query(cloneURL)
+	rows, err := stmt.Query(id)
 	if err != nil {
 		return nil, err
 	}
@@ -126,12 +124,12 @@ func (r *rep) GetRepositoryByCloneURL(cloneURL string) (*model.Repository, error
 	m := &model.Repository{}
 
 	for rows.Next() {
-		rows.Scan(&m.CloneURL, m.Owner, &m.AvatarURL)
+		rows.Scan(&m.ID, &m.Owner, &m.Name, &m.AvatarURL)
 		break
 	}
 
-	if m.CloneURL == "" {
-		return nil, fmt.Errorf("No repository found with cloneURL: %v", cloneURL)
+	if m.Owner == "" {
+		return nil, fmt.Errorf("No repository found with ID: %v", id)
 	}
 
 	return m, nil

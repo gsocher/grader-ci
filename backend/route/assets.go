@@ -10,10 +10,9 @@ import (
 )
 
 const assetsDirRelToGOPATH = "/src/github.com/dpolansky/ci/backend/static/assets/"
-const pathTokenFileName = "file_name"
 
 func RegisterAssetsRoute(r *mux.Router) {
-	r.HandleFunc("/assets/{"+pathTokenFileName+"}", serveAssetsHTTPHandler()).Methods("GET")
+	r.HandleFunc(pathURLAssets+"/{"+pathTokenFileName+"}", serveAssetsHTTPHandler()).Methods("GET")
 }
 
 func serveAssetsHTTPHandler() func(http.ResponseWriter, *http.Request) {
