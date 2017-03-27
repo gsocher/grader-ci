@@ -14,7 +14,7 @@ const pathTokenBuildID = "build_id"
 const pathTokenRepositoryName = "repository_name"
 const pathURLBuildAPI = "/api/build"
 
-func RegisterBuildRoutes(router *mux.Router, build service.BuildReader) {
+func RegisterBuildAPIRoutes(router *mux.Router, build service.BuildReader) {
 	router.HandleFunc(pathURLBuildAPI+"/{"+pathTokenBuildID+"}",
 		getBuildStatusHTTPHandler(build)).Methods("GET")
 
