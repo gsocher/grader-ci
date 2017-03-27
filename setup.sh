@@ -6,11 +6,13 @@ mkdir -p /home/vagrant/bin
 curl -sL -o /home/vagrant/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
 chmod +x /home/vagrant/bin/gimme
 
-gimme_command='$(GIMME_GO_VERSION=1.7 /home/vagrant/bin/gimme)'
+gimme_command='$(GIMME_GO_VERSION=1.8 /home/vagrant/bin/gimme)'
 
 cat >> /home/vagrant/.bashrc << EOF
 eval $gimme_command
 export GOPATH=/home/vagrant
+alias ci="cd /home/vagrant/src/github.com/dpolansky/ci"
+ci
 EOF
 
 source /home/vagrant/.bashrc
@@ -56,4 +58,3 @@ sudo apt-get -y install rabbitmq-server
 
 # install sqlite
 sudo apt-get install sqlite3 libsqlite3-dev
-
