@@ -3,6 +3,7 @@ package service
 import (
 	"database/sql"
 	"fmt"
+	"sort"
 
 	"github.com/dpolansky/ci/model"
 )
@@ -10,6 +11,7 @@ import (
 type RepositoryReader interface {
 	GetRepositoryByCloneURL(cloneURL string) (*model.Repository, error)
 	GetRepositoriesByOwner(owner string) ([]*model.Repository, error)
+	GetRepositories() ([]*model.Repository, error)
 }
 
 type RepositoryWriter interface {
@@ -32,10 +34,6 @@ func NewSQLiteRepositoryReadWriter(db *sql.DB) (RepositoryReadWriter, error) {
 }
 
 func (r *rep) CreateRepository(m *model.Repository) error {
-	return r.createRepositoryInDB(m)
-}
-
-func (r *rep) createRepositoryInDB(m *model.Repository) error {
 	ps := `INSERT INTO repos (clone_url, owner) values (?, ?)`
 	stmt, err := r.db.Prepare(ps)
 	if err != nil {
@@ -51,12 +49,8 @@ func (r *rep) createRepositoryInDB(m *model.Repository) error {
 	return nil
 }
 
-func (r *rep) GetRepositoriesByOwner(owner string) ([]*model.Repository, error) {
-	return r.getRepositoriesByOwnerInDB(owner)
-}
-
-func (r *rep) getRepositoriesByOwnerInDB(owner string) ([]*model.Repository, error) {
-	ps := `SELECT clone_url, owner FROM repos order by clone_url asc`
+func (r *rep) GetRepositories() ([]*model.Repository, error) {
+	ps := `SELECT clone_url, owner FROM repos`
 	stmt, err := r.db.Prepare(ps)
 	if err != nil {
 		return nil, err
@@ -77,14 +71,43 @@ func (r *rep) getRepositoriesByOwnerInDB(owner string) ([]*model.Repository, err
 		res = append(res, m)
 	}
 
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].CloneURL < res[j].CloneURL
+	})
+
+	return res, nil
+}
+
+func (r *rep) GetRepositoriesByOwner(owner string) ([]*model.Repository, error) {
+	ps := `SELECT clone_url, owner FROM repos where owner = ?`
+	stmt, err := r.db.Prepare(ps)
+	if err != nil {
+		return nil, err
+	}
+
+	defer stmt.Close()
+	rows, err := stmt.Query(owner)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+	res := []*model.Repository{}
+
+	for rows.Next() {
+		m := &model.Repository{}
+		rows.Scan(&m.CloneURL, &m.Owner)
+		res = append(res, m)
+	}
+
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].CloneURL < res[j].CloneURL
+	})
+
 	return res, nil
 }
 
 func (r *rep) GetRepositoryByCloneURL(cloneURL string) (*model.Repository, error) {
-	return r.getRepositoryByCloneURLInDB(cloneURL)
-}
-
-func (r *rep) getRepositoryByCloneURLInDB(cloneURL string) (*model.Repository, error) {
 	ps := `SELECT clone_url, owner FROM repos WHERE clone_url = ?`
 	stmt, err := r.db.Prepare(ps)
 	if err != nil {

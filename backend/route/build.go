@@ -8,18 +8,21 @@ import (
 
 	"github.com/dpolansky/ci/backend/service"
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 )
 
 const pathTokenBuildID = "build_id"
+const pathTokenRepositoryName = "repository_name"
 const pathURLBuildAPI = "/api/build"
 
-func RegisterBuildRoutes(router *mux.Router, build service.BuildReadWriter) {
+func RegisterBuildRoutes(router *mux.Router, build service.BuildReader) {
 	router.HandleFunc(pathURLBuildAPI+"/{"+pathTokenBuildID+"}",
 		getBuildStatusHTTPHandler(build)).Methods("GET")
+
+	router.HandleFunc(pathURLRepositoryAPI+"/{"+pathTokenOwner+"}"+"/{"+pathTokenRepositoryName+"}/builds",
+		getBuildsBySourceRepositoryHTTPHandler(build)).Methods("GET")
 }
 
-func getBuildStatusHTTPHandler(build service.BuildReadWriter) func(rw http.ResponseWriter, req *http.Request) {
+func getBuildStatusHTTPHandler(build service.BuildReader) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		id, found := vars[pathTokenBuildID]
@@ -40,13 +43,35 @@ func getBuildStatusHTTPHandler(build service.BuildReadWriter) func(rw http.Respo
 			return
 		}
 
-		bytes, err := json.Marshal(status)
-		if err != nil {
-			logrus.WithError(err).Errorf("Failed to marshal build status")
-			writeError(rw, http.StatusInternalServerError, err)
+		b, _ := json.Marshal(status)
+		writeOk(rw, b)
+	}
+}
+
+func getBuildsBySourceRepositoryHTTPHandler(build service.BuildReader) func(rw http.ResponseWriter, req *http.Request) {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+
+		owner, found := vars[pathTokenOwner]
+		if !found {
+			writeError(rw, http.StatusBadRequest, fmt.Errorf("No owner found in path"))
 			return
 		}
 
-		writeOk(rw, bytes)
+		name, found := vars[pathTokenRepositoryName]
+		if !found {
+			writeError(rw, http.StatusBadRequest, fmt.Errorf("No repository name found in path"))
+			return
+		}
+
+		asGithubURL := fmt.Sprintf("https://github.com/%s/%s", owner, name)
+		builds, err := build.GetBuildsBySourceRepositoryURL(asGithubURL)
+		if err != nil {
+			writeError(rw, http.StatusNotFound, err)
+			return
+		}
+
+		b, _ := json.Marshal(builds)
+		writeOk(rw, b)
 	}
 }

@@ -11,13 +11,18 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const pathTokenRepositoryID = "repository_id"
 const pathTokenOwner = "owner_name"
 const pathURLRepositoryAPI = "/api/repository"
 
 func RegisterRepositoryRoutes(router *mux.Router, rep service.RepositoryReadWriter) {
 	router.HandleFunc(pathURLRepositoryAPI,
 		createRepositoryHTTPHandler(rep)).Methods("POST")
+
+	router.HandleFunc(pathURLRepositoryAPI,
+		getRepositoriesHTTPHandler(rep)).Methods("GET")
+
+	router.HandleFunc(pathURLRepositoryAPI+"/{"+pathTokenOwner+"}",
+		getRepositoriesByOwnerHTTPHandler(rep)).Methods("GET")
 }
 
 func createRepositoryHTTPHandler(rep service.RepositoryReadWriter) func(rw http.ResponseWriter, req *http.Request) {
@@ -51,6 +56,40 @@ func createRepositoryHTTPHandler(rep service.RepositoryReadWriter) func(rw http.
 		}
 
 		b, _ := json.Marshal(m)
+		writeOk(rw, b)
+	}
+}
+
+func getRepositoriesHTTPHandler(rep service.RepositoryReadWriter) func(rw http.ResponseWriter, req *http.Request) {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		reps, err := rep.GetRepositories()
+		if err != nil {
+			writeError(rw, http.StatusInternalServerError, fmt.Errorf("Failed to get repositories: %v", err))
+			return
+		}
+
+		b, _ := json.Marshal(reps)
+		writeOk(rw, b)
+	}
+}
+
+func getRepositoriesByOwnerHTTPHandler(rep service.RepositoryReadWriter) func(rw http.ResponseWriter, req *http.Request) {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+
+		owner, found := vars[pathTokenOwner]
+		if !found {
+			writeError(rw, http.StatusBadRequest, fmt.Errorf("Missing owner name in path"))
+			return
+		}
+
+		reps, err := rep.GetRepositoriesByOwner(owner)
+		if err != nil {
+			writeError(rw, http.StatusInternalServerError, fmt.Errorf("Failed to get repositories: %v", err))
+			return
+		}
+
+		b, _ := json.Marshal(reps)
 		writeOk(rw, b)
 	}
 }

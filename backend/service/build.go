@@ -45,17 +45,9 @@ func (b *builder) UpdateBuild(m *model.BuildStatus) (*model.BuildStatus, error) 
 	return m, nil
 }
 
-func (b *builder) GetBuildByID(id int) (*model.BuildStatus, error) {
-	return b.getBuildByIDInDB(id)
-}
-
-func (b *builder) GetBuilds() ([]*model.BuildStatus, error) {
-	return b.getAllBuildsInDB()
-}
-
 func (b *builder) updateBuildInDB(m *model.BuildStatus) (int, error) {
 	// check if the build exists, if it does then we are updating
-	if _, err := b.getBuildByIDInDB(m.ID); err == nil {
+	if _, err := b.GetBuildByID(m.ID); err == nil {
 		ps := `
 		UPDATE builds SET date=?, status=?, log=? WHERE id=?
 		`
@@ -91,7 +83,7 @@ func (b *builder) updateBuildInDB(m *model.BuildStatus) (int, error) {
 	return int(id), nil
 }
 
-func (b *builder) getBuildByIDInDB(id int) (*model.BuildStatus, error) {
+func (b *builder) GetBuildByID(id int) (*model.BuildStatus, error) {
 	ps := `SELECT id, clone_url, date, branch, log, status FROM builds WHERE id = ?`
 	stmt, err := b.db.Prepare(ps)
 	if err != nil {
@@ -152,7 +144,7 @@ func (b *builder) GetBuildsBySourceRepositoryURL(cloneURL string) ([]*model.Buil
 	return res, nil
 }
 
-func (b *builder) getAllBuildsInDB() ([]*model.BuildStatus, error) {
+func (b *builder) GetBuilds() ([]*model.BuildStatus, error) {
 	ps := `SELECT id, clone_url, date, branch, log, status FROM builds`
 	stmt, err := b.db.Prepare(ps)
 	if err != nil {
