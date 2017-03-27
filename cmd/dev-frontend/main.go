@@ -19,11 +19,12 @@ func main() {
 	must(err, "Failed to open SQLite database connection")
 	defer db.Close()
 
-	// build, _ := service.NewSQLiteBuildReadWriter(db)
+	build, _ := service.NewSQLiteBuildReadWriter(db)
 	rep, _ := service.NewSQLiteRepositoryReadWriter(db)
 
 	router := mux.NewRouter()
 	route.RegisterRepositoryFrontendRoutes(router, rep)
+	route.RegisterBuildFrontendRoutes(router, build)
 	route.RegisterAssetsRoute(router)
 
 	serv := &http.Server{

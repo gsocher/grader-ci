@@ -8,21 +8,24 @@
   </head>
 
   <body>
+    <h1 class="top-header">Repositories</h1>
+
     <table class="repos-table">
-      <tr class="repos-table-top-row">
+      <tr class="top-row">
         <th>OWNER</th>
-        <th>REPOSITORY</th>
+        <th>NAME</th>
       </tr>
 
       {{range .Repositories}}
-        <tr class="repos-table-row">
-            <td>
-              <div>
-              <img class="avatar-thumbnail" src="{{.AvatarURL}}"> {{.Owner}}
-              </div>
-            </td>
-            <td>{{.CloneURL}}</td>
-        </tr>
+      <tr class="repos-table-row">
+        <td>
+          <div>
+            <img class="avatar-thumbnail" src="{{.AvatarURL}}"> {{.Owner}}
+          </div>
+        </td>
+        
+        <td><a href="{{.ID}}/builds">{{.Name}}</a></td>
+      </tr>
       {{end}}
 
     </table>

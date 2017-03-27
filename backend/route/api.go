@@ -1,8 +1,9 @@
 package route
 
 const (
-	pathURLAssets         = "/assets"
-	pathURLRepositoryList = "/"
+	pathURLAssets               = "/assets"
+	pathURLRepositoryList       = "/"
+	pathURLBuildsByRepositoryID = "/builds"
 
 	pathURLBuildAPI         = "/api/build"
 	pathURLRepositoryAPI    = "/api/repository"

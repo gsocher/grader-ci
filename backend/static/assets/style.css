@@ -8,18 +8,39 @@ td {
     vertical-align: baseline;
 }
 
+a {
+  color:inherit;
+  text-decoration: none;
+}
+
+.top-header {
+    text-align: center;
+    color: white;
+    font-weight: normal;
+}
+
 .repos-table {
     margin-left: auto;
     margin-right: auto;
     border-spacing: 10px;
 }
 
-.repos-table-top-row {
+.builds-table {
+    margin-left: auto;
+    margin-right: auto;
+    border-spacing: 10px;
+}
+
+.top-row {
     font-size: 12px;
-    color: #ffffff
+    color: white;
 }
 
 .repos-table-row {
+    color: #a9cf54;
+}
+
+.builds-table-row {
     color: #a9cf54;
 }
 

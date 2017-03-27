@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Builds - ci</title>
+    <link rel="stylesheet" href="../../assets/style.css">
+  </head>
+
+  <body>
+    <h1 class="top-header">Builds</h1>
+    
+    <table class="builds-table">
+      <tr class="top-row">
+        <th>ID</th>
+        <th>BRANCH</th>
+        <th>STATUS</th>
+        <th>LAST UPDATE</th>
+      </tr>
+
+      {{range .Builds}}
+      <tr class="builds-table-row">
+          <td>{{.ID}}</td>
+          <td>{{.Branch}}</td>
+          <td>{{.Status}}</td>
+          <td>{{.LastUpdate}}</td>
+      </tr>
+      {{end}}
+
+  </body>
+</html>

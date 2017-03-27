@@ -24,7 +24,7 @@ type githubWebhookRequest struct {
 		ID    int    `json:"id"`
 		Name  string `json:"name"`
 		Owner struct {
-			Name      string `json:"name"`
+			Name      string `json:"login"`
 			AvatarURL string `json:"avatar_url"`
 		} `json:"owner"`
 	} `json:"repository"`
