@@ -51,14 +51,17 @@ func main() {
 		buf := &bytes.Buffer{}
 		io.Copy(os.Stdout, buf)
 
-		if err := w.RunBuild(&build, buf); err != nil {
+		if exit, err := w.RunBuild(&build, buf); err != nil {
 			log.WithFields(logrus.Fields{
 				"id":       build.ID,
 				"cloneURL": build.CloneURL,
 			}).WithError(err).Errorf("Failed to run build")
 
+			build.Status = model.StatusBuildError
+			build.Log += fmt.Sprintf("\nFailed to run build: %v\n", err)
+		} else if exit != 0 {
 			build.Status = model.StatusBuildFailed
-			build.Log += fmt.Sprintf("Failed to run build: %v\n", err)
+			build.Log += fmt.Sprintf("\nBuild exited with non-zero status code: %v\n", exit)
 		} else {
 			build.Status = model.StatusBuildPassed
 		}

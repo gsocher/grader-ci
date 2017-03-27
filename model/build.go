@@ -6,6 +6,7 @@ const (
 	StatusBuildWaiting = "waiting"
 	StatusBuildRunning = "running"
 	StatusBuildFailed  = "failed"
+	StatusBuildError   = "error"
 	StatusBuildPassed  = "passed"
 )
 

@@ -2,7 +2,6 @@ package worker
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	"github.com/docker/docker/api/types"
@@ -17,7 +16,7 @@ const containerNamePrefix = "container"
 // DockerClient is an interface for docker client functionality
 type DockerClient interface {
 	StartContainer(image string) (string, error)
-	RunBuild(containerID string, build *model.BuildStatus, repoDir string, wr io.Writer) error
+	RunBuild(containerID string, build *model.BuildStatus, repoDir string, wr io.Writer) (int, error)
 	StopContainer(containerID string) error
 	CopyToContainer(containerID, srcPath, dstPath string, isDir bool) error
 }
@@ -63,7 +62,7 @@ func (d *dClient) StartContainer(image string) (string, error) {
 	return container.ID, nil
 }
 
-func (d *dClient) RunBuild(containerID string, build *model.BuildStatus, repoDir string, wr io.Writer) error {
+func (d *dClient) RunBuild(containerID string, build *model.BuildStatus, repoDir string, wr io.Writer) (int, error) {
 	execCfg := types.ExecConfig{
 		Cmd:          []string{"bash", "-x", "/root/build.sh", repoDir},
 		AttachStdout: true,
@@ -73,36 +72,32 @@ func (d *dClient) RunBuild(containerID string, build *model.BuildStatus, repoDir
 
 	exec, err := d.client.ContainerExecCreate(context.Background(), containerID, execCfg)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	resp, err := d.client.ContainerExecAttach(context.Background(), exec.ID, execCfg)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	defer resp.Close()
 
 	err = d.client.ContainerExecStart(context.Background(), exec.ID, types.ExecStartCheck{Detach: false, Tty: true})
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	_, err = io.Copy(wr, resp.Reader)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	inspect, err := d.client.ContainerExecInspect(context.Background(), exec.ID)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	if inspect.ExitCode != 0 {
-		return fmt.Errorf("Build exited with non-zero exit code: %v", inspect.ExitCode)
-	}
-
-	return nil
+	return inspect.ExitCode, nil
 }
 
 func (d *dClient) CopyToContainer(containerID, srcPath, dstPath string, isDir bool) error {

@@ -34,7 +34,7 @@ func New() (*Worker, error) {
 }
 
 // RunBuild runs a given BuildTask and streams its output to a writer.
-func (w *Worker) RunBuild(b *model.BuildStatus, wr io.Writer) error {
+func (w *Worker) RunBuild(b *model.BuildStatus, wr io.Writer) (int, error) {
 	log := logrus.WithFields(logrus.Fields{
 		"id":       b.ID,
 		"cloneURL": b.CloneURL,
@@ -47,24 +47,24 @@ func (w *Worker) RunBuild(b *model.BuildStatus, wr io.Writer) error {
 	log.Infof("Cloning into repo")
 	dir, err := cloneRepoIntoTempDir(id, b.CloneURL, b.Branch)
 	if err != nil {
-		return fmt.Errorf("Failed to clone repo: %v", err)
+		return 0, fmt.Errorf("Failed to clone repo: %v", err)
 	}
 
 	defer os.RemoveAll(dir)
 
 	cfg, err := parseConfigInDir(dir)
 	if err != nil {
-		return fmt.Errorf("Failed to parse config: %v", err)
+		return 0, fmt.Errorf("Failed to parse config: %v", err)
 	}
 
 	image, err := getImageForLanguage(cfg.Language)
 	if err != nil {
-		return fmt.Errorf("Failed to get image name: %v", err)
+		return 0, fmt.Errorf("Failed to get image name: %v", err)
 	}
 
 	scriptPath, err := getBuildScriptPathForLanguage(cfg.Language)
 	if err != nil {
-		return fmt.Errorf("Failed to get build sript path: %v", err)
+		return 0, fmt.Errorf("Failed to get build sript path: %v", err)
 	}
 
 	log.Info("Starting container")
@@ -82,19 +82,19 @@ func (w *Worker) RunBuild(b *model.BuildStatus, wr io.Writer) error {
 	}()
 
 	if err != nil {
-		return fmt.Errorf("Failed to start container for image %v: %v", image, err)
+		return 0, fmt.Errorf("Failed to start container for image %v: %v", image, err)
 	}
 
 	w.dockerClient.CopyToContainer(containerName, scriptPath, "/root", false)
 	w.dockerClient.CopyToContainer(containerName, dir, "/root/", true)
 
 	log.Info("Running build script")
-	err = w.dockerClient.RunBuild(containerName, b, filepath.Base(dir), wr)
+	exit, err := w.dockerClient.RunBuild(containerName, b, filepath.Base(dir), wr)
 	if err != nil {
-		return fmt.Errorf("Failed to run build on container %v: %v", b.ID, err)
+		return 0, fmt.Errorf("Failed to run build on container %v: %v", b.ID, err)
 	}
 
-	return nil
+	return exit, nil
 }
 
 // cloneRepoIntoTempDir clones the target repo into a temp dir and returns the path of the dir.
