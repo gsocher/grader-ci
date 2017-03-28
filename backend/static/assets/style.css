@@ -19,6 +19,15 @@ a {
     font-weight: normal;
 }
 
+.log-container {
+    margin: 0 auto;
+    width: 700px;
+    background: #2b2b2b;
+    color: white;
+    font-family: Monaco,monospace;
+    font-size: 12px;
+}
+
 .repos-table {
     margin-left: auto;
     margin-right: auto;
@@ -31,17 +40,23 @@ a {
     border-spacing: 10px;
 }
 
+.build-info {
+    text-align: center;
+    color: #a9cf54;
+    font-weight: normal;
+}
+
 .top-row {
     font-size: 12px;
     color: white;
 }
 
-.repos-table-row {
+.text-green {
     color: #a9cf54;
 }
 
-.builds-table-row {
-    color: #a9cf54;
+.text-white {
+    color: white;
 }
 
 .avatar-thumbnail {

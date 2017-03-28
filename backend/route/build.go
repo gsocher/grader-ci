@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"strings"
+
 	"github.com/dpolansky/ci/backend/service"
 	"github.com/dpolansky/ci/model"
 	humanize "github.com/dustin/go-humanize"
@@ -18,6 +20,9 @@ import (
 func RegisterBuildFrontendRoutes(router *mux.Router, build service.BuildReader, rep service.RepositoryReadWriter) {
 	router.HandleFunc("/{"+pathTokenRepositoryID+"}"+pathURLBuildsByRepositoryID,
 		getBuildsByRepositoryIDTemplateHTTPHandler(build, rep)).Methods("GET")
+
+	router.HandleFunc("/{"+pathTokenRepositoryID+"}"+pathURLBuildsByRepositoryID+"/{"+pathTokenBuildID+"}",
+		getBuildByIDTemplateHTTPHandler(build, rep)).Methods("GET")
 }
 
 func RegisterBuildAPIRoutes(router *mux.Router, build service.BuildReader) {
@@ -81,6 +86,72 @@ func getBuildsByRepositoryIDTemplateHTTPHandler(build service.BuildReader, rep s
 			Builds     []*BuildStatus
 			Repository *model.Repository
 		}{result, repo})
+	}
+}
+
+func getBuildByIDTemplateHTTPHandler(build service.BuildReader, rep service.RepositoryReader) func(rw http.ResponseWriter, req *http.Request) {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		id, found := vars[pathTokenRepositoryID]
+		if !found {
+			writeError(rw, http.StatusBadRequest, fmt.Errorf("No repository ID found in path"))
+			return
+		}
+
+		asInt, err := strconv.Atoi(id)
+		if err != nil {
+			writeError(rw, http.StatusBadRequest, fmt.Errorf("Repository ID is not a number: %v", id))
+			return
+		}
+
+		repo, err := rep.GetRepositoryByID(asInt)
+		if err != nil {
+			writeError(rw, http.StatusBadRequest, fmt.Errorf("Repository with ID %v could not be found: %v", asInt, err))
+			return
+		}
+
+		id, found = vars[pathTokenBuildID]
+		if !found {
+			writeError(rw, http.StatusBadRequest, fmt.Errorf("No build ID found in path"))
+			return
+		}
+
+		asInt, err = strconv.Atoi(id)
+		if err != nil {
+			writeError(rw, http.StatusBadRequest, fmt.Errorf("build ID is not a number: %v", id))
+			return
+		}
+
+		b, err := build.GetBuildByID(asInt)
+		if err != nil {
+			writeError(rw, http.StatusInternalServerError, fmt.Errorf("Failed to get build for repository %v: %v", asInt, err))
+			return
+		}
+
+		// custom struct to display human friendly information
+		type BuildStatus struct {
+			ID         int
+			Branch     string
+			Status     string
+			LastUpdate string
+			Log        []string
+		}
+
+		// humanize times
+		status := &BuildStatus{
+			ID:         b.ID,
+			Branch:     b.Branch,
+			Status:     b.Status,
+			LastUpdate: humanize.Time(b.LastUpdate),
+			Log:        strings.Split(b.Log, "\n"),
+		}
+
+		tempPath := filepath.Join(os.Getenv("GOPATH"), templatesDirPathFromGOPATH, "detail.html")
+		tmpl := template.Must(template.ParseFiles(tempPath))
+		tmpl.Execute(rw, struct {
+			Build      *BuildStatus
+			Repository *model.Repository
+		}{status, repo})
 	}
 }
 
