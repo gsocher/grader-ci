@@ -1,9 +1,0 @@
-server
-    - job numbers instead of ids (0,1,...)
-    - sqllite with gorm for storage
-    - endpoints
-        - list active jobs
-        - list all jobs? (paging eventually)
-        
-worker process
-    - add more languages (probably java, ruby, c first)
