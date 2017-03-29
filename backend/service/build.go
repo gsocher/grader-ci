@@ -9,6 +9,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const buildSelectAllQuery = "select id, repo_id, clone_url, branch, status, date, log from builds"
+const buildInsertStatement = "insert into builds(repo_id, clone_url, branch, status, date, log) values (?, ?, ?, ?, ?, ?)"
+const buildUpdateStatement = "update builds SET date=?, status=?, log=? WHERE id=?"
+
 type BuildReadWriter interface {
 	BuildReader
 	BuildWriter
@@ -37,85 +41,56 @@ func NewSQLiteBuildReadWriter(db *sql.DB) (BuildReadWriter, error) {
 func (b *builder) UpdateBuild(m *model.BuildStatus) (*model.BuildStatus, error) {
 	m.LastUpdate = time.Now()
 
-	// check if the build exists, if it does then we are updating
 	if _, err := b.GetBuildByID(m.ID); err == nil {
-		ps := `
-		UPDATE builds SET date=?, status=?, log=? WHERE id=?
-		`
-
-		stmt, err := b.db.Prepare(ps)
+		_, err = execBuildStatement(b.db, buildUpdateStatement, m.LastUpdate, m.Status, m.Log, m.ID)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Build update failed: %v", err)
+		}
+	} else {
+		// could not find build, so insert it
+		id, err := execBuildStatement(b.db, buildInsertStatement, m.RepositoryID, m.CloneURL, m.Branch, m.Status, m.LastUpdate, m.Log)
+		if err != nil {
+			return nil, fmt.Errorf("Build insert failed: %v", err)
 		}
 
-		defer stmt.Close()
-		stmt.Exec(m.LastUpdate, m.Status, m.Log, m.ID)
-		return m, nil
+		m.ID = id
 	}
 
-	// build doesn't exist, create new one
-	ps := `INSERT INTO builds(repo_id, clone_url, branch, status, date, log) values (?, ?, ?, ?, ?, ?)`
-	stmt, err := b.db.Prepare(ps)
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
-	res, err := stmt.Exec(m.RepositoryID, m.CloneURL, m.Branch, m.Status, m.LastUpdate, "")
-	if err != nil {
-		return nil, err
-	}
-
-	id, err := res.LastInsertId()
-	if err != nil {
-		return nil, err
-	}
-
-	m.ID = int(id)
 	return m, nil
 }
 
 func (b *builder) GetBuildByID(id int) (*model.BuildStatus, error) {
-	ps := `SELECT id, repo_id, clone_url, date, branch, log, status FROM builds WHERE id = ?`
-	stmt, err := b.db.Prepare(ps)
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
-	rows, err := stmt.Query(id)
+	res, err := queryBuilds(b.db, fmt.Sprintf("%s where id = ?", buildSelectAllQuery), id)
 	if err != nil {
 		return nil, err
 	}
 
-	defer rows.Close()
-	m := &model.BuildStatus{}
-
-	for rows.Next() {
-		err = rows.Scan(&m.ID, &m.RepositoryID, &m.CloneURL, &m.LastUpdate, &m.Branch, &m.Log, &m.Status)
-		if err != nil {
-			return nil, err
-		}
-		break
+	l := len(res)
+	if l == 0 {
+		return nil, fmt.Errorf("No build found with id=%v", id)
+	} else if l > 1 {
+		return nil, fmt.Errorf("Got more than one build but expected one, len=%v res=%v", l, res)
 	}
 
-	// no result found
-	if m.CloneURL == "" {
-		return nil, fmt.Errorf("No build found with ID: %v", id)
-	}
-
-	return m, nil
+	return res[0], nil
 }
 
 func (b *builder) GetBuildsByRepositoryID(id int) ([]*model.BuildStatus, error) {
-	ps := `SELECT id, repo_id, clone_url, date, branch, log, status FROM builds WHERE repo_id = ?`
-	stmt, err := b.db.Prepare(ps)
+	return queryBuilds(b.db, fmt.Sprintf("%s where repo_id = ?", buildSelectAllQuery), id)
+}
+
+func (b *builder) GetBuilds() ([]*model.BuildStatus, error) {
+	return queryBuilds(b.db, buildSelectAllQuery)
+}
+
+func queryBuilds(db *sql.DB, ps string, data ...interface{}) ([]*model.BuildStatus, error) {
+	stmt, err := db.Prepare(ps)
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(id)
+	rows, err := stmt.Query(data...)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +100,7 @@ func (b *builder) GetBuildsByRepositoryID(id int) ([]*model.BuildStatus, error) 
 	res := []*model.BuildStatus{}
 	for rows.Next() {
 		m := &model.BuildStatus{}
-		err = rows.Scan(&m.ID, &m.RepositoryID, &m.CloneURL, &m.LastUpdate, &m.Branch, &m.Log, &m.Status)
+		err = rows.Scan(&m.ID, &m.RepositoryID, &m.CloneURL, &m.Branch, &m.Status, &m.LastUpdate, &m.Log)
 		if err != nil {
 			return nil, err
 		}
@@ -136,31 +111,22 @@ func (b *builder) GetBuildsByRepositoryID(id int) ([]*model.BuildStatus, error) 
 	return res, nil
 }
 
-func (b *builder) GetBuilds() ([]*model.BuildStatus, error) {
-	ps := `SELECT id, repo_id, clone_url, date, branch, log, status FROM builds`
-	stmt, err := b.db.Prepare(ps)
+func execBuildStatement(db *sql.DB, ps string, data ...interface{}) (int, error) {
+	stmt, err := db.Prepare(ps)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query()
+	res, err := stmt.Exec(data...)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	defer rows.Close()
-
-	res := []*model.BuildStatus{}
-	for rows.Next() {
-		m := &model.BuildStatus{}
-		err = rows.Scan(&m.ID, &m.RepositoryID, &m.CloneURL, &m.LastUpdate, &m.Branch, &m.Log, &m.Status)
-		if err != nil {
-			return nil, err
-		}
-
-		res = append(res, m)
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
 	}
 
-	return res, nil
+	return int(id), nil
 }
