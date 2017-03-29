@@ -9,9 +9,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const buildSelectAllQuery = "select id, repo_id, clone_url, branch, status, date, log from builds"
-const buildInsertStatement = "insert into builds(repo_id, clone_url, branch, status, date, log) values (?, ?, ?, ?, ?, ?)"
-const buildUpdateStatement = "update builds SET date=?, status=?, log=? WHERE id=?"
+const (
+	buildSelectAllQuery  = "select id, repo_id, clone_url, branch, status, date, log from builds"
+	buildInsertStatement = "insert into builds(repo_id, clone_url, branch, status, date, log) values (?, ?, ?, ?, ?, ?)"
+	buildUpdateStatement = "update builds SET date=?, status=?, log=? WHERE id=?"
+)
 
 type BuildReadWriter interface {
 	BuildReader
@@ -42,13 +44,13 @@ func (b *builder) UpdateBuild(m *model.BuildStatus) (*model.BuildStatus, error) 
 	m.LastUpdate = time.Now()
 
 	if _, err := b.GetBuildByID(m.ID); err == nil {
-		_, err = execBuildStatement(b.db, buildUpdateStatement, m.LastUpdate, m.Status, m.Log, m.ID)
+		_, err = execStatement(b.db, buildUpdateStatement, m.LastUpdate, m.Status, m.Log, m.ID)
 		if err != nil {
 			return nil, fmt.Errorf("Build update failed: %v", err)
 		}
 	} else {
 		// could not find build, so insert it
-		id, err := execBuildStatement(b.db, buildInsertStatement, m.RepositoryID, m.CloneURL, m.Branch, m.Status, m.LastUpdate, m.Log)
+		id, err := execStatement(b.db, buildInsertStatement, m.RepositoryID, m.CloneURL, m.Branch, m.Status, m.LastUpdate, m.Log)
 		if err != nil {
 			return nil, fmt.Errorf("Build insert failed: %v", err)
 		}
@@ -109,24 +111,4 @@ func queryBuilds(db *sql.DB, ps string, data ...interface{}) ([]*model.BuildStat
 	}
 
 	return res, nil
-}
-
-func execBuildStatement(db *sql.DB, ps string, data ...interface{}) (int, error) {
-	stmt, err := db.Prepare(ps)
-	if err != nil {
-		return 0, err
-	}
-	defer stmt.Close()
-
-	res, err := stmt.Exec(data...)
-	if err != nil {
-		return 0, err
-	}
-
-	id, err := res.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-
-	return int(id), nil
 }
