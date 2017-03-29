@@ -11,11 +11,17 @@ const (
 )
 
 type BuildStatus struct {
-	ID           int       `json:"id"`
-	RepositoryID int       `json:"repo_id"`
-	LastUpdate   time.Time `json:"last_update"`
-	CloneURL     string    `json:"clone_url"`
-	Branch       string    `json:"branch"`
-	Status       string    `json:"status"`
-	Log          string    `json:"log"`
+	ID         int                 `json:"id"`
+	Source     *RepositoryMetadata `json:"source"`
+	Tested     bool                `json:"tested"`
+	Test       *RepositoryMetadata `json:"test"`
+	LastUpdate time.Time           `json:"last_update"`
+	Status     string              `json:"status"`
+	Log        string              `json:"log"`
+}
+
+type RepositoryMetadata struct {
+	ID       int    `json:"id"`
+	CloneURL string `json:"clone_url"`
+	Branch   string `json:"branch"`
 }

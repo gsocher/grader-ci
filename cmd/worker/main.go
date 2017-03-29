@@ -40,7 +40,7 @@ func main() {
 
 		log.WithFields(logrus.Fields{
 			"id":       build.ID,
-			"cloneURL": build.CloneURL,
+			"cloneURL": build.Source.CloneURL,
 		}).Infof("Received build")
 
 		// set status to running and send an update
@@ -54,7 +54,7 @@ func main() {
 		if exit, err := w.RunBuild(&build, buf); err != nil {
 			log.WithFields(logrus.Fields{
 				"id":       build.ID,
-				"cloneURL": build.CloneURL,
+				"cloneURL": build.Source.CloneURL,
 			}).WithError(err).Errorf("Failed to run build")
 
 			build.Status = model.StatusBuildError

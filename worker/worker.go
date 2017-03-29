@@ -37,15 +37,15 @@ func New() (*Worker, error) {
 func (w *Worker) RunBuild(b *model.BuildStatus, wr io.Writer) (int, error) {
 	log := logrus.WithFields(logrus.Fields{
 		"id":       b.ID,
-		"cloneURL": b.CloneURL,
-		"branch":   b.Branch,
+		"cloneURL": b.Source.CloneURL,
+		"branch":   b.Source.Branch,
 	})
 
 	log.Infof("Initializing build")
 	id := fmt.Sprintf("%v", b.ID)
 
 	log.Infof("Cloning into repo")
-	dir, err := cloneRepoIntoTempDir(id, b.CloneURL, b.Branch)
+	dir, err := cloneRepoIntoTempDir(id, b.Source.CloneURL, b.Source.Branch)
 	if err != nil {
 		return 0, fmt.Errorf("Failed to clone repo: %v", err)
 	}

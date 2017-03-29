@@ -37,12 +37,17 @@ func createBuildsTable(db *sql.DB) error {
 	CREATE TABLE IF NOT EXISTS builds(
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		repo_id INTEGER NOT NULL,
-		clone_url TEXT NOT NULL,
+		repo_url TEXT NOT NULL,
+		repo_branch TEXT NOT NULL,
+		tested boolean,
+		test_id INTEGER,
+		test_url TEXTL,
+		test_branch TEXT,
+		status text NOT NULL,
 		date DATETIME NOT NULL,
-		branch text NOT NULL,
 		log text,
-		status text,
-		FOREIGN KEY (repo_id) REFERENCES repos(id)
+		FOREIGN KEY (repo_id) REFERENCES repos(id),
+		FOREIGN KEY (test_id) REFERENCES repos(id)
 	);
 	`
 

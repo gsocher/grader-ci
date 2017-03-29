@@ -58,9 +58,11 @@ func parseWebhookHTTPHandler(run service.BuildRunner, rep service.RepositoryRead
 		}
 
 		m := &model.BuildStatus{
-			CloneURL:     fmt.Sprintf("https://github.com/%s/%s", r.Repository.Owner.Name, r.Repository.Name),
-			Branch:       filepath.Base(r.Ref),
-			RepositoryID: repo.ID,
+			Source: &model.RepositoryMetadata{
+				ID:       repo.ID,
+				Branch:   filepath.Base(r.Ref),
+				CloneURL: fmt.Sprintf("https://github.com/%s/%s", r.Repository.Owner.Name, r.Repository.Name),
+			},
 		}
 
 		status, err := run.RunBuild(m)

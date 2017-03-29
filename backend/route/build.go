@@ -74,7 +74,7 @@ func getBuildsByRepositoryIDTemplateHTTPHandler(build service.BuildReader, rep s
 		for _, b := range builds {
 			result = append(result, &BuildStatus{
 				ID:         b.ID,
-				Branch:     b.Branch,
+				Branch:     b.Source.Branch,
 				Status:     b.Status,
 				LastUpdate: humanize.Time(b.LastUpdate),
 			})
@@ -140,7 +140,7 @@ func getBuildByIDTemplateHTTPHandler(build service.BuildReader, rep service.Repo
 		// humanize times
 		status := &BuildStatus{
 			ID:         b.ID,
-			Branch:     b.Branch,
+			Branch:     b.Source.Branch,
 			Status:     b.Status,
 			LastUpdate: humanize.Time(b.LastUpdate),
 			Log:        strings.Split(b.Log, "\n"),

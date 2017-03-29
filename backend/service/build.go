@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	buildSelectAllQuery  = "select id, repo_id, clone_url, branch, status, date, log from builds"
-	buildInsertStatement = "insert into builds(repo_id, clone_url, branch, status, date, log) values (?, ?, ?, ?, ?, ?)"
+	buildSelectAllQuery  = "select id, repo_id, repo_url, repo_branch, tested, test_id, test_url, test_branch, status, date, log from builds"
+	buildInsertStatement = "insert into builds(repo_id, repo_url, repo_branch, tested, test_id, test_url, test_branch, status, date, log) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	buildUpdateStatement = "update builds SET date=?, status=?, log=? WHERE id=?"
 )
 
@@ -42,6 +42,9 @@ func NewSQLiteBuildReadWriter(db *sql.DB) (BuildReadWriter, error) {
 
 func (b *builder) UpdateBuild(m *model.BuildStatus) (*model.BuildStatus, error) {
 	m.LastUpdate = time.Now()
+	if m.Test == nil {
+		m.Test = &model.RepositoryMetadata{}
+	}
 
 	if _, err := b.GetBuildByID(m.ID); err == nil {
 		_, err = execStatement(b.db, buildUpdateStatement, m.LastUpdate, m.Status, m.Log, m.ID)
@@ -50,7 +53,7 @@ func (b *builder) UpdateBuild(m *model.BuildStatus) (*model.BuildStatus, error) 
 		}
 	} else {
 		// could not find build, so insert it
-		id, err := execStatement(b.db, buildInsertStatement, m.RepositoryID, m.CloneURL, m.Branch, m.Status, m.LastUpdate, m.Log)
+		id, err := execStatement(b.db, buildInsertStatement, m.Source.ID, m.Source.CloneURL, m.Source.Branch, m.Tested, m.Test.ID, m.Test.CloneURL, m.Test.Branch, m.Status, m.LastUpdate, m.Log)
 		if err != nil {
 			return nil, fmt.Errorf("Build insert failed: %v", err)
 		}
@@ -101,8 +104,11 @@ func queryBuilds(db *sql.DB, ps string, data ...interface{}) ([]*model.BuildStat
 
 	res := []*model.BuildStatus{}
 	for rows.Next() {
-		m := &model.BuildStatus{}
-		err = rows.Scan(&m.ID, &m.RepositoryID, &m.CloneURL, &m.Branch, &m.Status, &m.LastUpdate, &m.Log)
+		m := &model.BuildStatus{
+			Source: &model.RepositoryMetadata{},
+			Test:   &model.RepositoryMetadata{},
+		}
+		err = rows.Scan(&m.ID, &m.Source.ID, &m.Source.CloneURL, &m.Source.Branch, &m.Tested, &m.Test.ID, &m.Test.CloneURL, &m.Test.Branch, &m.Status, &m.LastUpdate, &m.Log)
 		if err != nil {
 			return nil, err
 		}
