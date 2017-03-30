@@ -32,6 +32,20 @@ func createReposTable(db *sql.DB) error {
 	return err
 }
 
+func createTestBindsTable(db *sql.DB) error {
+	table := `
+	CREATE TABLE IF NOT EXISTS test_binds(
+		source_id INTEGER NOT NULL PRIMARY KEY,
+		test_id  INTEGER NOT NULL,
+		FOREIGN KEY (source_id) REFERENCES repos(id),
+		FOREIGN KEY (test_id) REFERENCES repos(id)
+	);
+	`
+
+	_, err := db.Exec(table)
+	return err
+}
+
 func createBuildsTable(db *sql.DB) error {
 	table := `
 	CREATE TABLE IF NOT EXISTS builds(
