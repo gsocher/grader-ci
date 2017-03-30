@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/dpolansky/ci/amqp"
 	"github.com/dpolansky/ci/model"
 	"github.com/dpolansky/ci/worker"
-	"github.com/sirupsen/logrus"
 
 	"os"
 )
@@ -31,17 +31,24 @@ func main() {
 
 	log.Infof("Waiting for builds")
 
-	callback := func(body []byte) {
+	die := make(chan struct{})
+	client.ReadFromQueueWithCallback(model.AMQPBuildQueue, handleBuild(client, w), die)
+
+	select {}
+}
+
+func handleBuild(client amqp.Messenger, w *worker.Worker) func([]byte) {
+	return func(body []byte) {
 		var build model.BuildStatus
+
 		err := json.Unmarshal(body, &build)
 		if err != nil {
-			log.WithError(err).Errorf("Failed to unmarshal build")
+			logrus.WithError(err).Errorf("Failed to unmarshal build")
 		}
 
-		log.WithFields(logrus.Fields{
-			"id":       build.ID,
-			"cloneURL": build.Source.CloneURL,
-		}).Infof("Received build")
+		log := logrus.New().WithField("id", build.ID)
+		b, _ := json.MarshalIndent(build, "", "\t")
+		log.Infof("Running build:\n%v\n", string(b))
 
 		// set status to running and send an update
 		build.Status = model.StatusBuildRunning
@@ -52,10 +59,7 @@ func main() {
 		io.Copy(os.Stdout, buf)
 
 		if exit, err := w.RunBuild(&build, buf); err != nil {
-			log.WithFields(logrus.Fields{
-				"id":       build.ID,
-				"cloneURL": build.Source.CloneURL,
-			}).WithError(err).Errorf("Failed to run build")
+			log.WithError(err).Errorf("Failed to run build")
 
 			build.Status = model.StatusBuildError
 			build.Log += fmt.Sprintf("\nFailed to run build: %v\n", err)
@@ -72,9 +76,4 @@ func main() {
 		byt, _ = json.Marshal(&build)
 		client.SendToQueue(model.AMQPStatusQueue, byt)
 	}
-
-	die := make(chan struct{})
-	client.ReadFromQueueWithCallback(model.AMQPBuildQueue, callback, die)
-
-	select {}
 }
