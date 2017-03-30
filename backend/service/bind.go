@@ -30,10 +30,10 @@ type binder struct {
 	db *sql.DB
 }
 
-func NewSQLiteTestBindReadWriter(db *sql.DB) TestBindReadWriter {
+func NewSQLiteTestBindReadWriter(db *sql.DB) (TestBindReadWriter, error) {
 	return &binder{
 		db: db,
-	}
+	}, nil
 }
 
 func (b *binder) GetTestBindBySourceRepositoryID(id int) (*model.TestBind, error) {

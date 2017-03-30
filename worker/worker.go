@@ -53,8 +53,6 @@ func (w *Worker) RunBuild(b *model.BuildStatus, wr io.Writer) (int, error) {
 
 		// copy temp dir into source dir and override conflicts
 		cmd := exec.Command("rsync", "-av", fmt.Sprintf("%v/", tempDir), sourceDir)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
 		if err = cmd.Run(); err != nil {
 			return 0, fmt.Errorf("Failed to rsync test into source: %v", err)
 		}

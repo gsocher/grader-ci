@@ -6,6 +6,7 @@ const (
 	pathURLBuildsByRepositoryID = "/builds"
 
 	pathURLBuildAPI         = "/api/build"
+	pathURLTestBindAPI      = "/api/bind"
 	pathURLRepositoryAPI    = "/api/repository"
 	pathURLGithubWebhookAPI = "/api/webhook/github"
 

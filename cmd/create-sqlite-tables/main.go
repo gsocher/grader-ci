@@ -16,6 +16,7 @@ func main() {
 	log.Printf("Creating tables\n")
 	must(createReposTable(db))
 	must(createBuildsTable(db))
+	must(createTestBindsTable(db))
 }
 
 func createReposTable(db *sql.DB) error {

@@ -2,46 +2,163 @@
 	"variables": [],
 	"info": {
 		"name": "ci",
-		"_postman_id": "accb8079-423b-f089-1df6-570dfeec44da",
+		"_postman_id": "42d7f4af-c420-6491-8ab3-dcfd7f89bc88",
 		"description": "",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "Github Webhook",
-			"request": {
-				"url": "localhost:8080/api/github",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
+			"name": "Bind",
+			"description": "",
+			"item": [
+				{
+					"name": "Update Test Bind",
+					"request": {
+						"url": "localhost:8080/api/bind",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"source_id\" : 1,\n\t\"test_id\": 2\n}"
+						},
 						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"ref\" : \"refs/heads/failed\",\n\t\"repository\" : {\n\t\t\"full_name\" : \"dpolansky/ci-test-repos\"\n\t}\n}"
+					},
+					"response": []
 				},
-				"description": ""
-			},
-			"response": []
+				{
+					"name": "Get All Test Binds",
+					"request": {
+						"url": "localhost:8080/api/bind",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"source_id\" : 1,\n\t\"test_id\": 2\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Get Test Bind By Source ID",
+					"request": {
+						"url": "localhost:8080/api/bind/123",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"source_id\" : 1,\n\t\"test_id\": 2\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
 		},
 		{
-			"name": "Get Build Status By ID",
-			"request": {
-				"url": "localhost:8080/api/status/id",
-				"method": "GET",
-				"header": [],
-				"body": {},
-				"description": ""
-			},
-			"response": []
+			"name": "Build",
+			"description": "",
+			"item": [
+				{
+					"name": "Get Build Status By ID",
+					"request": {
+						"url": "localhost:8080/api/build/1",
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Get Builds By Repository ID",
+					"request": {
+						"url": "localhost:8080/api/repository/65313471/builds",
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				}
+			]
 		},
 		{
-			"name": "Create Repository",
+			"name": "Repository",
+			"description": "",
+			"item": [
+				{
+					"name": "Get All Repositories",
+					"request": {
+						"url": "localhost:8080/api/repository",
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Get Repositories By Owner",
+					"request": {
+						"url": "localhost:8080/api/repository/owner",
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Webhook",
+			"description": "",
+			"item": [
+				{
+					"name": "Github Webhook",
+					"request": {
+						"url": "localhost:8080/api/webhook/github",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"ref\": \"refs/heads/master\",\r\n  \"before\": \"d1f80abc047f5deaad095d18f1c071f002126d2f\",\r\n  \"after\": \"5db7c9d4972635b2fe4d9e946b80fde24c1e0e58\",\r\n  \"created\": false,\r\n  \"deleted\": false,\r\n  \"forced\": false,\r\n  \"base_ref\": null,\r\n  \"compare\": \"https://github.com/dpolansky/go-poet/compare/d1f80abc047f...5db7c9d49726\",\r\n  \"commits\": [\r\n    {\r\n      \"id\": \"5db7c9d4972635b2fe4d9e946b80fde24c1e0e58\",\r\n      \"tree_id\": \"e3060c2e189c4a4d5ab22934ade96326a0c0e143\",\r\n      \"distinct\": true,\r\n      \"message\": \"Refactor globals to use statements\",\r\n      \"timestamp\": \"2017-02-25T23:07:46-08:00\",\r\n      \"url\": \"https://github.com/dpolansky/go-poet/commit/5db7c9d4972635b2fe4d9e946b80fde24c1e0e58\",\r\n      \"author\": {\r\n        \"name\": \"Brad Moylan\",\r\n        \"email\": \"bmoylan@palantir.com\",\r\n        \"username\": \"bmoylan\"\r\n      },\r\n      \"committer\": {\r\n        \"name\": \"Brad Moylan\",\r\n        \"email\": \"bmoylan@palantir.com\",\r\n        \"username\": \"bmoylan\"\r\n      },\r\n      \"added\": [\r\n\r\n      ],\r\n      \"removed\": [\r\n\r\n      ],\r\n      \"modified\": [\r\n        \"poet/codewriter.go\",\r\n        \"poet/codewriter_test.go\",\r\n        \"poet/files.go\",\r\n        \"poet/files_test.go\",\r\n        \"poet/globals.go\",\r\n        \"poet/globals_test.go\"\r\n      ]\r\n    }\r\n  ],\r\n  \"head_commit\": {\r\n    \"id\": \"5db7c9d4972635b2fe4d9e946b80fde24c1e0e58\",\r\n    \"tree_id\": \"e3060c2e189c4a4d5ab22934ade96326a0c0e143\",\r\n    \"distinct\": true,\r\n    \"message\": \"Refactor globals to use statements\",\r\n    \"timestamp\": \"2017-02-25T23:07:46-08:00\",\r\n    \"url\": \"https://github.com/dpolansky/go-poet/commit/5db7c9d4972635b2fe4d9e946b80fde24c1e0e58\",\r\n    \"author\": {\r\n      \"name\": \"Brad Moylan\",\r\n      \"email\": \"bmoylan@palantir.com\",\r\n      \"username\": \"bmoylan\"\r\n    },\r\n    \"committer\": {\r\n      \"name\": \"Brad Moylan\",\r\n      \"email\": \"bmoylan@palantir.com\",\r\n      \"username\": \"bmoylan\"\r\n    },\r\n    \"added\": [\r\n\r\n    ],\r\n    \"removed\": [\r\n\r\n    ],\r\n    \"modified\": [\r\n      \"poet/codewriter.go\",\r\n      \"poet/codewriter_test.go\",\r\n      \"poet/files.go\",\r\n      \"poet/files_test.go\",\r\n      \"poet/globals.go\",\r\n      \"poet/globals_test.go\"\r\n    ]\r\n  },\r\n  \"repository\": {\r\n    \"id\": 65313471,\r\n    \"name\": \"go-poet\",\r\n    \"full_name\": \"dpolansky/go-poet\",\r\n    \"owner\": {\r\n      \"name\": \"dpolansky\",\r\n      \"email\": \"dtpolansky@gmail.com\",\r\n      \"login\": \"dpolansky\",\r\n      \"id\": 16250555,\r\n      \"avatar_url\": \"https://avatars.githubusercontent.com/u/16250555?v=3\",\r\n      \"gravatar_id\": \"\",\r\n      \"url\": \"https://api.github.com/users/dpolansky\",\r\n      \"html_url\": \"https://github.com/dpolansky\",\r\n      \"followers_url\": \"https://api.github.com/users/dpolansky/followers\",\r\n      \"following_url\": \"https://api.github.com/users/dpolansky/following{/other_user}\",\r\n      \"gists_url\": \"https://api.github.com/users/dpolansky/gists{/gist_id}\",\r\n      \"starred_url\": \"https://api.github.com/users/dpolansky/starred{/owner}{/repo}\",\r\n      \"subscriptions_url\": \"https://api.github.com/users/dpolansky/subscriptions\",\r\n      \"organizations_url\": \"https://api.github.com/users/dpolansky/orgs\",\r\n      \"repos_url\": \"https://api.github.com/users/dpolansky/repos\",\r\n      \"events_url\": \"https://api.github.com/users/dpolansky/events{/privacy}\",\r\n      \"received_events_url\": \"https://api.github.com/users/dpolansky/received_events\",\r\n      \"type\": \"User\",\r\n      \"site_admin\": false\r\n    },\r\n    \"private\": false,\r\n    \"html_url\": \"https://github.com/dpolansky/go-poet\",\r\n    \"description\": \"A Go package for generating Go code\",\r\n    \"fork\": false,\r\n    \"url\": \"https://github.com/dpolansky/go-poet\",\r\n    \"forks_url\": \"https://api.github.com/repos/dpolansky/go-poet/forks\",\r\n    \"keys_url\": \"https://api.github.com/repos/dpolansky/go-poet/keys{/key_id}\",\r\n    \"collaborators_url\": \"https://api.github.com/repos/dpolansky/go-poet/collaborators{/collaborator}\",\r\n    \"teams_url\": \"https://api.github.com/repos/dpolansky/go-poet/teams\",\r\n    \"hooks_url\": \"https://api.github.com/repos/dpolansky/go-poet/hooks\",\r\n    \"issue_events_url\": \"https://api.github.com/repos/dpolansky/go-poet/issues/events{/number}\",\r\n    \"events_url\": \"https://api.github.com/repos/dpolansky/go-poet/events\",\r\n    \"assignees_url\": \"https://api.github.com/repos/dpolansky/go-poet/assignees{/user}\",\r\n    \"branches_url\": \"https://api.github.com/repos/dpolansky/go-poet/branches{/branch}\",\r\n    \"tags_url\": \"https://api.github.com/repos/dpolansky/go-poet/tags\",\r\n    \"blobs_url\": \"https://api.github.com/repos/dpolansky/go-poet/git/blobs{/sha}\",\r\n    \"git_tags_url\": \"https://api.github.com/repos/dpolansky/go-poet/git/tags{/sha}\",\r\n    \"git_refs_url\": \"https://api.github.com/repos/dpolansky/go-poet/git/refs{/sha}\",\r\n    \"trees_url\": \"https://api.github.com/repos/dpolansky/go-poet/git/trees{/sha}\",\r\n    \"statuses_url\": \"https://api.github.com/repos/dpolansky/go-poet/statuses/{sha}\",\r\n    \"languages_url\": \"https://api.github.com/repos/dpolansky/go-poet/languages\",\r\n    \"stargazers_url\": \"https://api.github.com/repos/dpolansky/go-poet/stargazers\",\r\n    \"contributors_url\": \"https://api.github.com/repos/dpolansky/go-poet/contributors\",\r\n    \"subscribers_url\": \"https://api.github.com/repos/dpolansky/go-poet/subscribers\",\r\n    \"subscription_url\": \"https://api.github.com/repos/dpolansky/go-poet/subscription\",\r\n    \"commits_url\": \"https://api.github.com/repos/dpolansky/go-poet/commits{/sha}\",\r\n    \"git_commits_url\": \"https://api.github.com/repos/dpolansky/go-poet/git/commits{/sha}\",\r\n    \"comments_url\": \"https://api.github.com/repos/dpolansky/go-poet/comments{/number}\",\r\n    \"issue_comment_url\": \"https://api.github.com/repos/dpolansky/go-poet/issues/comments{/number}\",\r\n    \"contents_url\": \"https://api.github.com/repos/dpolansky/go-poet/contents/{+path}\",\r\n    \"compare_url\": \"https://api.github.com/repos/dpolansky/go-poet/compare/{base}...{head}\",\r\n    \"merges_url\": \"https://api.github.com/repos/dpolansky/go-poet/merges\",\r\n    \"archive_url\": \"https://api.github.com/repos/dpolansky/go-poet/{archive_format}{/ref}\",\r\n    \"downloads_url\": \"https://api.github.com/repos/dpolansky/go-poet/downloads\",\r\n    \"issues_url\": \"https://api.github.com/repos/dpolansky/go-poet/issues{/number}\",\r\n    \"pulls_url\": \"https://api.github.com/repos/dpolansky/go-poet/pulls{/number}\",\r\n    \"milestones_url\": \"https://api.github.com/repos/dpolansky/go-poet/milestones{/number}\",\r\n    \"notifications_url\": \"https://api.github.com/repos/dpolansky/go-poet/notifications{?since,all,participating}\",\r\n    \"labels_url\": \"https://api.github.com/repos/dpolansky/go-poet/labels{/name}\",\r\n    \"releases_url\": \"https://api.github.com/repos/dpolansky/go-poet/releases{/id}\",\r\n    \"deployments_url\": \"https://api.github.com/repos/dpolansky/go-poet/deployments\",\r\n    \"created_at\": 1470762614,\r\n    \"updated_at\": \"2017-02-20T01:00:12Z\",\r\n    \"pushed_at\": 1488096531,\r\n    \"git_url\": \"git://github.com/dpolansky/go-poet.git\",\r\n    \"ssh_url\": \"git@github.com:dpolansky/go-poet.git\",\r\n    \"clone_url\": \"https://github.com/dpolansky/go-poet.git\",\r\n    \"svn_url\": \"https://github.com/dpolansky/go-poet\",\r\n    \"homepage\": \"\",\r\n    \"size\": 77,\r\n    \"stargazers_count\": 127,\r\n    \"watchers_count\": 127,\r\n    \"language\": \"Go\",\r\n    \"has_issues\": true,\r\n    \"has_downloads\": true,\r\n    \"has_wiki\": true,\r\n    \"has_pages\": false,\r\n    \"forks_count\": 7,\r\n    \"mirror_url\": null,\r\n    \"open_issues_count\": 2,\r\n    \"forks\": 7,\r\n    \"open_issues\": 2,\r\n    \"watchers\": 127,\r\n    \"default_branch\": \"master\",\r\n    \"stargazers\": 127,\r\n    \"master_branch\": \"master\"\r\n  },\r\n  \"pusher\": {\r\n    \"name\": \"dpolansky\",\r\n    \"email\": \"dtpolansky@gmail.com\"\r\n  },\r\n  \"sender\": {\r\n    \"login\": \"dpolansky\",\r\n    \"id\": 16250555,\r\n    \"avatar_url\": \"https://avatars.githubusercontent.com/u/16250555?v=3\",\r\n    \"gravatar_id\": \"\",\r\n    \"url\": \"https://api.github.com/users/dpolansky\",\r\n    \"html_url\": \"https://github.com/dpolansky\",\r\n    \"followers_url\": \"https://api.github.com/users/dpolansky/followers\",\r\n    \"following_url\": \"https://api.github.com/users/dpolansky/following{/other_user}\",\r\n    \"gists_url\": \"https://api.github.com/users/dpolansky/gists{/gist_id}\",\r\n    \"starred_url\": \"https://api.github.com/users/dpolansky/starred{/owner}{/repo}\",\r\n    \"subscriptions_url\": \"https://api.github.com/users/dpolansky/subscriptions\",\r\n    \"organizations_url\": \"https://api.github.com/users/dpolansky/orgs\",\r\n    \"repos_url\": \"https://api.github.com/users/dpolansky/repos\",\r\n    \"events_url\": \"https://api.github.com/users/dpolansky/events{/privacy}\",\r\n    \"received_events_url\": \"https://api.github.com/users/dpolansky/received_events\",\r\n    \"type\": \"User\",\r\n    \"site_admin\": false\r\n  }\r\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Update Test Bind",
 			"request": {
-				"url": "localhost:8080/api/repository",
+				"url": "localhost:8080/api/bind",
 				"method": "POST",
 				"header": [
 					{
@@ -52,7 +169,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"cloneURL\" : \"https://github.com/dpolansky/ci-test-repos\",\n\t\"owner\" : \"admin\"\n}"
+					"raw": "{\n\t\"sourceID\" : 1,\n\t\"testID\": 2\n}"
 				},
 				"description": ""
 			},

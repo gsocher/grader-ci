@@ -21,6 +21,7 @@ func main() {
 
 	build, _ := service.NewSQLiteBuildReadWriter(db)
 	rep, _ := service.NewSQLiteRepositoryReadWriter(db)
+	// bind, _ := service.NewSQLiteTestBindReadWriter(db)
 
 	router := mux.NewRouter()
 	route.RegisterRepositoryFrontendRoutes(router, rep)
