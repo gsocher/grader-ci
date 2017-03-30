@@ -13,9 +13,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func RegisterGithubWebhookRoutes(router *mux.Router, run service.BuildRunner, rep service.RepositoryReadWriter) {
+func RegisterGithubWebhookRoutes(router *mux.Router, run service.BuildRunner, rep service.RepositoryReadWriter, bind service.TestBindReader) {
 	router.HandleFunc(pathURLGithubWebhookAPI,
-		parseWebhookHTTPHandler(run, rep)).Methods("POST")
+		parseWebhookHTTPHandler(run, rep, bind)).Methods("POST")
 }
 
 type githubWebhookRequest struct {
@@ -31,7 +31,7 @@ type githubWebhookRequest struct {
 }
 
 // parseWebhookHTTPHandler is an endpoint for receiving github webhook requests.
-func parseWebhookHTTPHandler(run service.BuildRunner, rep service.RepositoryReadWriter) func(rw http.ResponseWriter, req *http.Request) {
+func parseWebhookHTTPHandler(run service.BuildRunner, rep service.RepositoryReadWriter, bind service.TestBindReader) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
@@ -63,6 +63,22 @@ func parseWebhookHTTPHandler(run service.BuildRunner, rep service.RepositoryRead
 				Branch:   filepath.Base(r.Ref),
 				CloneURL: fmt.Sprintf("https://github.com/%s/%s", r.Repository.Owner.Name, r.Repository.Name),
 			},
+		}
+
+		// if this repository has a test binding, update the build to include it
+		if bind, err := bind.GetTestBindBySourceRepositoryID(repo.ID); err == nil {
+			testRepo, err := rep.GetRepositoryByID(bind.TestID)
+			if err != nil {
+				logrus.WithError(err).Errorf("Failed to get test repository using bind: %v", err)
+				return
+			}
+
+			m.Tested = true
+			m.Test = &model.RepositoryMetadata{
+				ID:       bind.TestID,
+				CloneURL: fmt.Sprintf("https://github.com/%s/%s", testRepo.Owner, testRepo.Name),
+				Branch:   bind.TestBranch,
+			}
 		}
 
 		status, err := run.RunBuild(m)

@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	bindSelectAllQuery  = "select source_id, test_id from test_binds"
-	bindInsertStatement = "insert or replace into test_binds(source_id, test_id) values (?, ?)"
+	bindSelectAllQuery  = "select source_id, test_id, test_branch from test_binds"
+	bindInsertStatement = "insert or replace into test_binds(source_id, test_id, test_branch) values (?, ?, ?)"
 )
 
 type TestBindReader interface {
@@ -57,7 +57,7 @@ func (b *binder) GetTestBinds() ([]*model.TestBind, error) {
 }
 
 func (b *binder) UpdateTestBind(bind *model.TestBind) error {
-	_, err := execStatement(b.db, bindInsertStatement, bind.SourceID, bind.TestID)
+	_, err := execStatement(b.db, bindInsertStatement, bind.SourceID, bind.TestID, bind.TestBranch)
 	return err
 }
 
@@ -78,7 +78,7 @@ func queryTestBinds(db *sql.DB, ps string, data ...interface{}) ([]*model.TestBi
 	res := []*model.TestBind{}
 	for rows.Next() {
 		m := &model.TestBind{}
-		err = rows.Scan(&m.SourceID, &m.TestID)
+		err = rows.Scan(&m.SourceID, &m.TestID, &m.TestBranch)
 		if err != nil {
 			return nil, err
 		}

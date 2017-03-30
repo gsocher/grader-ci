@@ -38,6 +38,7 @@ func createTestBindsTable(db *sql.DB) error {
 	CREATE TABLE IF NOT EXISTS test_binds(
 		source_id INTEGER NOT NULL PRIMARY KEY,
 		test_id  INTEGER NOT NULL,
+		test_branch TEXT NOT NULL,
 		FOREIGN KEY (source_id) REFERENCES repos(id),
 		FOREIGN KEY (test_id) REFERENCES repos(id)
 	);

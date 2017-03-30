@@ -1,0 +1,4 @@
+#!/bin/bash
+
+rm sqlite_ci.db
+go run ../create-sqlite-tables/main.go
