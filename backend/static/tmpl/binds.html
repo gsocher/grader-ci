@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Test Binds - ci</title>
+    <link rel="stylesheet" href="assets/style.css">
+  </head>
+
+  <body>
+    <div class="nav-bar">
+      <a class="nav-logo" href="/">untitled-ci</a>
+
+      <nav class="nav-links">
+        <a class="nav-link" href="/">Repositories</a>
+        <a class="nav-link" href="/binds">Test Binds</a>
+      </nav>
+    </div>
+
+    <h1 class="top-header">Test Binds</h1>
+
+    <table class="repos-table">
+      <tr class="top-row">
+        <th>SOURCE REPO</th>
+        <th>TEST REPO</th>
+        <th>TEST BRANCH</th>
+      </tr>
+
+      {{range .Binds}}
+      <tr class="text-green">
+        <td><a href="/{{.SourceID}}/builds">{{.SourceID}}</a></td>
+        <td><a href="/{{.TestID}}/builds">{{.TestID}}</a></td>
+        <td>{{.TestBranch}}</td>
+      </tr>
+      {{end}}
+
+    </table>
+  </body>
+</html>

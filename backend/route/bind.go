@@ -3,8 +3,11 @@ package route
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"strconv"
 
@@ -12,6 +15,11 @@ import (
 	"github.com/dpolansky/ci/model"
 	"github.com/gorilla/mux"
 )
+
+func RegisterBindFrontendRoutes(router *mux.Router, bind service.TestBindReader) {
+	router.HandleFunc(pathURLBindList,
+		getTestBindListTemplateHTTPHandler(bind)).Methods("GET")
+}
 
 func RegisterBindAPIRoutes(router *mux.Router, bind service.TestBindReadWriter) {
 	router.HandleFunc(pathURLTestBindAPI,
@@ -22,6 +30,20 @@ func RegisterBindAPIRoutes(router *mux.Router, bind service.TestBindReadWriter) 
 
 	router.HandleFunc(pathURLTestBindAPI+"/{"+pathTokenRepositoryID+"}",
 		getTestBindBySourceRepositoryIDHTTPHandler(bind)).Methods("GET")
+}
+
+func getTestBindListTemplateHTTPHandler(bind service.TestBindReader) func(rw http.ResponseWriter, req *http.Request) {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		binds, err := bind.GetTestBinds()
+		if err != nil {
+			writeError(rw, http.StatusInternalServerError, fmt.Errorf("Failed to get test binds: %v", err))
+			return
+		}
+
+		tempPath := filepath.Join(os.Getenv("GOPATH"), templatesDirPathFromGOPATH, "binds.html")
+		tmpl := template.Must(template.ParseFiles(tempPath))
+		tmpl.Execute(rw, struct{ Binds []*model.TestBind }{binds})
+	}
 }
 
 func updateTestBindHTTPHandler(bind service.TestBindReadWriter) func(rw http.ResponseWriter, req *http.Request) {

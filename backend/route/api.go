@@ -4,6 +4,7 @@ const (
 	pathURLAssets               = "/assets"
 	pathURLRepositoryList       = "/"
 	pathURLBuildsByRepositoryID = "/builds"
+	pathURLBindList             = "/binds"
 
 	pathURLBuildAPI         = "/api/build"
 	pathURLTestBindAPI      = "/api/bind"

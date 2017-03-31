@@ -36,12 +36,12 @@
       </tr>
 
       {{range .Builds}}
-      <tr class="text-green">
-          <td><a href="/{{$.Repository.ID}}/builds/{{.ID}}">{{.ID}}</a></td>
-          <td>{{.Branch}}</td>
-          <td>{{.Status}}</td>
-          <td>{{.LastUpdate}}</td>
-          <td>{{.TestID}}</td>
+      <tr>
+          <td class="text-white"><a href="/{{$.Repository.ID}}/builds/{{.ID}}">{{.ID}}</a></td>
+          <td class="text-green">{{.Branch}}</td>
+          <td class="text-white">{{.Status}}</td>
+          <td class="text-white">{{.LastUpdate}}</td>
+          <td class="text-green"><a href="/{{.TestID}}/builds">{{.TestID}}</a></td>
       </tr>
       {{end}}
 
