@@ -65,6 +65,12 @@ a {
     border-spacing: 10px;
 }
 
+.build-test-info {
+    text-align: center;
+    color: white;
+    font-weight: normal;
+}
+
 .build-info {
     text-align: center;
     color: #a9cf54;

@@ -3,7 +3,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{.Repository.Name}} - Build {{.Build.ID}} - ci</title>
+    <title>{{.Source.Name}} - Build {{.Build.ID}} - ci</title>
     <link rel="stylesheet" href="/assets/style.css">
   </head>
 
@@ -13,19 +13,34 @@
 
       <nav class="nav-links">
         <a class="nav-link" href="/">Repositories</a>
-        <a class="nav-link" href="/links">Links</a>
+        <a class="nav-link" href="/binds">Test Binds</a>
       </nav>
     </div>
-    
+
     <h1 class="top-header">
       <div>
-        <img class="avatar-thumbnail" src="{{.Repository.AvatarURL}}"> {{.Repository.Owner}} - <a href="/{{.Repository.ID}}/builds">{{.Repository.Name}}</a>
+        <img class="avatar-thumbnail" src="{{.Source.AvatarURL}}"> {{.Source.Owner}} - <a href="/{{.Source.ID}}/builds">{{.Source.Name}}</a>
       </div>
     </h1>
     
     <h2 class="top-header">Build {{.Build.ID}}</h2>
-    <h3 class="build-info">{{.Build.Branch}} {{.Build.Status}} {{.Build.LastUpdate}}</h3>
-
+    <h3 class="build-info">
+      <span class="text-white">Branch </span> 
+      <span class="text-green">{{.Build.Branch}}</span>
+      <span class="text-white">{{.Build.Status}}</span>
+      <span class="text-white">{{.Build.LastUpdate}}</span>
+    </h3>
+    {{if .Build.Tested}}
+      <h3 class="build-test-info">
+        <span class="text-white">Tested with </span>
+        <span class="text-green">{{.Test.Name}} </span>
+        <span class="text-white">on branch </span>
+        <span class="text-green">{{.Build.TestBranch}} </span>
+        <span class="text-white">| </span>
+        <span class="text-green">{{.Test.ID}}</span>
+      </h3>
+    {{end}}
+    
     <div class="log-container">
     {{range .Build.Log}}
         <p>{{.}}</p>

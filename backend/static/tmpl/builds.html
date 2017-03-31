@@ -13,10 +13,10 @@
 
       <nav class="nav-links">
         <a class="nav-link" href="/">Repositories</a>
-        <a class="nav-link" href="/links">Links</a>
+        <a class="nav-link" href="/binds">Test Binds</a>
       </nav>
     </div>
-    
+
     <h1 class="top-header">
       <div>
         <img class="avatar-thumbnail" src="{{.Repository.AvatarURL}}"> {{.Repository.Owner}} - {{.Repository.Name}}
@@ -32,6 +32,7 @@
         <th>BRANCH</th>
         <th>STATUS</th>
         <th>LAST UPDATE</th>
+        <th>TEST REPOSITORY</th>
       </tr>
 
       {{range .Builds}}
@@ -40,6 +41,7 @@
           <td>{{.Branch}}</td>
           <td>{{.Status}}</td>
           <td>{{.LastUpdate}}</td>
+          <td>{{.TestID}}</td>
       </tr>
       {{end}}
 

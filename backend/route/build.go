@@ -66,17 +66,26 @@ func getBuildsByRepositoryIDTemplateHTTPHandler(build service.BuildReader, rep s
 			Branch     string
 			Status     string
 			LastUpdate string
+			TestID     string
 		}
 
 		result := []*BuildStatus{}
 
 		// humanize times
 		for _, b := range builds {
+			var testID string
+			if b.Tested {
+				testID = strconv.Itoa(b.Test.ID)
+			} else {
+				testID = "none"
+			}
+
 			result = append(result, &BuildStatus{
 				ID:         b.ID,
 				Branch:     b.Source.Branch,
 				Status:     b.Status,
 				LastUpdate: humanize.Time(b.LastUpdate),
+				TestID:     testID,
 			})
 		}
 
@@ -135,6 +144,8 @@ func getBuildByIDTemplateHTTPHandler(build service.BuildReader, rep service.Repo
 			Status     string
 			LastUpdate string
 			Log        []string
+			Tested     bool
+			TestBranch string
 		}
 
 		// humanize times
@@ -144,14 +155,26 @@ func getBuildByIDTemplateHTTPHandler(build service.BuildReader, rep service.Repo
 			Status:     b.Status,
 			LastUpdate: humanize.Time(b.LastUpdate),
 			Log:        strings.Split(b.Log, "\n"),
+			Tested:     b.Tested,
+			TestBranch: b.Test.Branch,
+		}
+
+		var testRepo *model.Repository
+		if b.Tested {
+			testRepo, err = rep.GetRepositoryByID(b.Test.ID)
+			if err != nil {
+				writeError(rw, http.StatusBadRequest, fmt.Errorf("Repository with ID %v could not be found: %v", b.Test.ID, err))
+				return
+			}
 		}
 
 		tempPath := filepath.Join(os.Getenv("GOPATH"), templatesDirPathFromGOPATH, "detail.html")
 		tmpl := template.Must(template.ParseFiles(tempPath))
 		tmpl.Execute(rw, struct {
-			Build      *BuildStatus
-			Repository *model.Repository
-		}{status, repo})
+			Build  *BuildStatus
+			Source *model.Repository
+			Test   *model.Repository
+		}{status, repo, testRepo})
 	}
 }
 
