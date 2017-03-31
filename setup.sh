@@ -43,8 +43,19 @@ sudo newgrp docker
 
 # build images
 IMAGE_DIR_PATH="/home/vagrant/src/github.com/dpolansky/ci/worker/build"
+
+# go
 docker build -t build-golang $IMAGE_DIR_PATH/golang
+
+# java8-maven
+docker pull maven
+docker build -t build-java8-maven $IMAGE_DIR_PATH/java8-maven
+
+# testing
 docker build -t build-test $IMAGE_DIR_PATH/test
+
+
+
 
 # install rabbitmq https://www.rabbitmq.com/install-debian.html
 echo 'deb http://www.rabbitmq.com/debian/ testing main' |
