@@ -3,6 +3,7 @@ package service
 import (
 	"database/sql"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/dpolansky/ci/model"
@@ -115,6 +116,11 @@ func queryBuilds(db *sql.DB, ps string, data ...interface{}) ([]*model.BuildStat
 
 		res = append(res, m)
 	}
+
+	// higher build numbers appear first
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].ID > res[j].ID
+	})
 
 	return res, nil
 }
