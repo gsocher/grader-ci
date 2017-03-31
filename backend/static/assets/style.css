@@ -13,10 +13,35 @@ a {
   text-decoration: none;
 }
 
+.nav-logo {
+    background: #ed3b1c;
+    color: white;
+    font-size: 20px;
+    font-family: Arial, sans-serif;
+    padding: 6px 8px;
+}
+
+.nav-links {
+    display: inline-block;
+}
+
+.nav-link {
+    color: white;
+    font-size: 16px;
+    padding-left: 10px;
+}
+
 .top-header {
     text-align: center;
     color: white;
     font-weight: normal;
+}
+
+.nav-bar {
+    margin: 0 auto;
+    width: 700px;
+    background: #242f39;
+    color: white;
 }
 
 .log-container {
