@@ -9,8 +9,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const assetsDirRelToGOPATH = "/src/github.com/dpolansky/ci/backend/static/assets/"
-
 func RegisterAssetsRoute(r *mux.Router) {
 	r.HandleFunc(pathURLAssets+"/{"+pathTokenFileName+"}", serveAssetsHTTPHandler()).Methods("GET")
 }

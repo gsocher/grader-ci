@@ -13,8 +13,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const templatesDirPathFromGOPATH = "/src/github.com/dpolansky/ci/backend/static/tmpl"
-
 func RegisterRepositoryFrontendRoutes(router *mux.Router, rep service.RepositoryReadWriter) {
 	router.HandleFunc(pathURLRepositoryList,
 		getRepositoryListTemplateHTTPHandler(rep)).Methods("GET")

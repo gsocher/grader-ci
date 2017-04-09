@@ -15,4 +15,7 @@ const (
 	pathTokenBuildID      = "build_id"
 	pathTokenRepositoryID = "repository_id"
 	pathTokenFileName     = "file_name"
+
+	templatesDirPathFromGOPATH = "/src/github.com/dpolansky/grader-ci/backend/static/tmpl"
+	assetsDirRelToGOPATH       = "/src/github.com/dpolansky/grader-ci/backend/static/assets/"
 )
