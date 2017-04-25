@@ -11,7 +11,7 @@ gimme_command='$(GIMME_GO_VERSION=1.8 /home/vagrant/bin/gimme)'
 cat >> /home/vagrant/.bashrc << EOF
 eval $gimme_command
 export GOPATH=/home/vagrant
-alias ci="cd /home/vagrant/src/github.com/dpolansky/ci"
+alias ci="cd /home/vagrant/src/github.com/dpolansky/grader-ci"
 ci
 EOF
 
@@ -42,7 +42,7 @@ sudo service docker restart
 sudo newgrp docker
 
 # build images
-IMAGE_DIR_PATH="/home/vagrant/src/github.com/dpolansky/ci/worker/build"
+IMAGE_DIR_PATH="/home/vagrant/src/github.com/dpolansky/grader-ci/worker/build"
 
 # go
 docker build -t build-golang $IMAGE_DIR_PATH/golang

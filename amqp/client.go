@@ -10,6 +10,7 @@ import (
 type Messenger interface {
 	ReadFromQueueWithCallback(queueName string, callback func([]byte), die chan struct{}) error
 	SendToQueue(queueName string, b []byte) error
+	PurgeQueue(queueName string) error
 }
 
 // NewAMQPClient creates a new AMQP client and creates a connection with the given URL
@@ -112,4 +113,15 @@ func (c *amqpClient) ReadFromQueueWithCallback(queueName string, callback func([
 			return nil
 		}
 	}
+}
+
+func (c *amqpClient) PurgeQueue(queueName string) error {
+	ch, err := c.conn.Channel()
+	if err != nil {
+		return fmt.Errorf("Failed to open a channel: %v", err)
+	}
+	defer ch.Close()
+
+	_, err = ch.QueuePurge(queueName, true)
+	return err
 }

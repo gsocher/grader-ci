@@ -7,9 +7,9 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/dpolansky/ci/backend/route"
-	"github.com/dpolansky/ci/backend/service"
-	"github.com/dpolansky/ci/model"
+	"github.com/dpolansky/grader-ci/backend/route"
+	"github.com/dpolansky/grader-ci/backend/service"
+	"github.com/dpolansky/grader-ci/model"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )

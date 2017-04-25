@@ -7,9 +7,9 @@ import (
 	"io"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/dpolansky/ci/amqp"
-	"github.com/dpolansky/ci/model"
-	"github.com/dpolansky/ci/worker"
+	"github.com/dpolansky/grader-ci/amqp"
+	"github.com/dpolansky/grader-ci/model"
+	"github.com/dpolansky/grader-ci/worker"
 
 	"os"
 )

@@ -3,8 +3,8 @@ package service
 import (
 	"fmt"
 
-	"github.com/dpolansky/ci/amqp"
-	"github.com/dpolansky/ci/model"
+	"github.com/dpolansky/grader-ci/amqp"
+	"github.com/dpolansky/grader-ci/model"
 	"github.com/sirupsen/logrus"
 
 	"encoding/json"

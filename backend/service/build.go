@@ -6,7 +6,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/dpolansky/ci/model"
+	"github.com/dpolansky/grader-ci/model"
 	_ "github.com/mattn/go-sqlite3"
 )
 

@@ -3,8 +3,8 @@ package backend
 import (
 	"net/http"
 
-	"github.com/dpolansky/ci/backend/route"
-	"github.com/dpolansky/ci/backend/service"
+	"github.com/dpolansky/grader-ci/backend/route"
+	"github.com/dpolansky/grader-ci/backend/service"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )

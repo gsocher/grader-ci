@@ -8,7 +8,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/archive"
-	"github.com/dpolansky/ci/model"
+	"github.com/dpolansky/grader-ci/model"
 )
 
 const containerNamePrefix = "container"

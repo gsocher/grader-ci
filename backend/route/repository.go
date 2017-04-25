@@ -8,8 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dpolansky/ci/backend/service"
-	"github.com/dpolansky/ci/model"
+	"github.com/dpolansky/grader-ci/backend/service"
+	"github.com/dpolansky/grader-ci/model"
 	"github.com/gorilla/mux"
 )
 

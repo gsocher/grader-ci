@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/dpolansky/ci/model"
+	"github.com/dpolansky/grader-ci/model"
 )
 
 const (
