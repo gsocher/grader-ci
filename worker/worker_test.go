@@ -1,67 +1,78 @@
 package worker
 
-// import (
-// 	"os"
-// 	"testing"
+import (
+	"strings"
+	"testing"
 
-// 	"github.com/dpolansky/grader-ci/model"
-// )
+	"bytes"
 
-// const testReposURL = "https://github.com/dpolansky/grader-ci-test-repos"
+	"github.com/dpolansky/grader-ci/model"
+)
 
-// func TestRunBuild(t *testing.T) {
-// 	w, err := New()
-// 	if err != nil {
-// 		t.Fatalf("Failed to create worker, err=%v", err)
-// 	}
+const testReposURL = "https://github.com/dpolansky/ci-test-repos"
+const scriptTestBranchName = "golang-with-script"
+const gradedSourceBranchName = "golang-graded-source"
+const gradedTestBranchName = "golang-graded-test"
 
-// 	task := &model.BuildStatus{
-// 		CloneURL: testReposURL,
-// 		Branch:   "golang",
-// 		ID:       1,
-// 	}
+func TestGradedBuild(t *testing.T) {
+	build := &model.BuildStatus{
+		ID: 0,
+		Source: &model.RepositoryMetadata{
+			Branch:   gradedSourceBranchName,
+			CloneURL: testReposURL,
+		},
+		Tested: true,
+		Test: &model.RepositoryMetadata{
+			Branch:   gradedTestBranchName,
+			CloneURL: testReposURL,
+		},
+	}
 
-// 	err = w.RunBuild(task, os.Stdout)
-// 	if err != nil {
-// 		t.Fatalf("Build failed, err=%v", err)
-// 	}
-// }
+	worker, err := New()
+	if err != nil {
+		t.Fatalf("failed to init worker: %v", err)
+	}
 
-// func TestRunBuildFail(t *testing.T) {
-// 	w, err := New()
-// 	if err != nil {
-// 		t.Fatalf("Failed to create worker, err=%v", err)
-// 	}
+	buf := &bytes.Buffer{}
+	exit, err := worker.RunBuild(build, buf)
+	output := buf.String()
 
-// 	task := &model.BuildStatus{
-// 		CloneURL: testReposURL,
-// 		Branch:   "fail",
-// 		ID:       1,
-// 	}
+	if err != nil {
+		t.Fatalf("build error: %v", err)
+	}
 
-// 	err = w.RunBuild(task, os.Stdout)
-// 	if err == nil {
-// 		t.Fatalf("Expected build to fail")
-// 	}
-// }
+	if exit != 0 {
+		t.Fatalf("build exited with non-zero: %v, output=%v", exit, output)
+	}
+}
 
-// func TestGetImageForLanguage(t *testing.T) {
-// 	var tests = []struct {
-// 		language    string
-// 		expectedImg string
-// 	}{
-// 		{"golang", "build-golang"},
-// 		{"test", "build-test"},
-// 	}
+func TestBuildWithScript(t *testing.T) {
+	build := &model.BuildStatus{
+		ID: 0,
+		Source: &model.RepositoryMetadata{
+			Branch:   scriptTestBranchName,
+			CloneURL: testReposURL,
+		},
+	}
 
-// 	for _, test := range tests {
-// 		img, err := getImageForLanguage(test.language)
-// 		if err != nil {
-// 			t.Fatalf("error getting image for language %v: %v", test.language, err)
-// 		}
+	worker, err := New()
+	if err != nil {
+		t.Fatalf("failed to init worker: %v", err)
+	}
 
-// 		if img != test.expectedImg {
-// 			t.Fatalf("Expected %v, got %v", test.expectedImg, img)
-// 		}
-// 	}
-// }
+	buf := &bytes.Buffer{}
+	exit, err := worker.RunBuild(build, buf)
+	output := buf.String()
+
+	if err != nil {
+		t.Fatalf("build error: %v", err)
+	}
+
+	if exit != 0 {
+		t.Fatalf("build exited with non-zero: %v, output=%v", exit, output)
+	}
+
+	if !strings.Contains(output, "done") {
+		t.Fatalf("expected echo of 'done' but didn't see it, output=%v", output)
+	}
+}

@@ -70,7 +70,37 @@ func (w *Worker) RunBuild(b *model.BuildStatus, wr io.Writer) (int, error) {
 
 	scriptPath, err := getBuildScriptPathForLanguage(cfg.Language)
 	if err != nil {
-		return 0, fmt.Errorf("Failed to get build sript path: %v", err)
+		return 0, fmt.Errorf("Failed to get build script path: %v", err)
+	}
+
+	// if there are commands to run:
+	// - read the setup script
+	// - add the commands
+	// - write it to a temp file to be copied to the container
+	if cfg.Script != nil {
+		f, err := ioutil.ReadFile(scriptPath)
+		if err != nil {
+			return 0, fmt.Errorf("Failed to read script from %v: %v", scriptPath, err)
+		}
+
+		buf := bytes.NewBuffer(f)
+		for _, c := range cfg.Script {
+			buf.WriteString(c)
+		}
+
+		temp, err := ioutil.TempFile("", "")
+		if err != nil {
+			return 0, fmt.Errorf("Failed to create temp file: %v", err)
+		}
+
+		defer func() {
+			os.Remove(temp.Name())
+			temp.Close()
+		}()
+
+		_, err = temp.Write(buf.Bytes())
+
+		scriptPath = temp.Name()
 	}
 
 	containerName, err := w.dockerClient.StartContainer(image)
@@ -88,8 +118,12 @@ func (w *Worker) RunBuild(b *model.BuildStatus, wr io.Writer) (int, error) {
 		return 0, fmt.Errorf("Failed to start container for image %v: %v", image, err)
 	}
 
-	w.dockerClient.CopyToContainer(containerName, scriptPath, "/root", false)
-	w.dockerClient.CopyToContainer(containerName, sourceDir, "/root/", true)
+	err = w.dockerClient.CopyToContainer(containerName, scriptPath, "/root/build.sh", false, false)
+	if err != nil {
+		panic(err)
+	}
+
+	w.dockerClient.CopyToContainer(containerName, sourceDir, "/root/", true, true)
 
 	exit, err := w.dockerClient.RunBuild(containerName, b, filepath.Base(sourceDir), wr)
 	if err != nil {

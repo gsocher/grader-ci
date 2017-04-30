@@ -18,7 +18,7 @@ type DockerClient interface {
 	StartContainer(image string) (string, error)
 	RunBuild(containerID string, build *model.BuildStatus, repoDir string, wr io.Writer) (int, error)
 	StopContainer(containerID string) error
-	CopyToContainer(containerID, srcPath, dstPath string, isDir bool) error
+	CopyToContainer(containerID, srcPath, dstPath string, isDir bool, exists bool) error
 }
 
 // dClient wraps docker's client
@@ -100,7 +100,7 @@ func (d *dClient) RunBuild(containerID string, build *model.BuildStatus, repoDir
 	return inspect.ExitCode, nil
 }
 
-func (d *dClient) CopyToContainer(containerID, srcPath, dstPath string, isDir bool) error {
+func (d *dClient) CopyToContainer(containerID, srcPath, dstPath string, isDir bool, exists bool) error {
 	srcInfo := archive.CopyInfo{
 		Exists: true,
 		IsDir:  isDir,
@@ -114,7 +114,7 @@ func (d *dClient) CopyToContainer(containerID, srcPath, dstPath string, isDir bo
 	defer srcArchive.Close()
 
 	dstInfo := archive.CopyInfo{
-		Exists: true,
+		Exists: exists,
 		IsDir:  true,
 		Path:   dstPath,
 	}
