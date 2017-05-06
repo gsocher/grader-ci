@@ -51,6 +51,9 @@ docker build -t build-golang $IMAGE_DIR_PATH/golang
 docker pull maven
 docker build -t build-java8-maven $IMAGE_DIR_PATH/java8-maven
 
+# python3
+docker build -t build-python3 $IMAGE_DIR_PATH/python3
+
 # testing
 docker build -t build-test $IMAGE_DIR_PATH/test
 
