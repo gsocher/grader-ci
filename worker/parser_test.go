@@ -18,7 +18,16 @@ func TestParse(t *testing.T) {
 	}
 }
 
-func TestParseScript(t *testing.T) {
+func TestParseInvalidYAML(t *testing.T) {
+	data := "	language: ruby"
+
+	_, err := parse([]byte(data))
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+}
+
+func TestParseWithBuildScript(t *testing.T) {
 	data := `script:
  - echo foo
  - echo bar`

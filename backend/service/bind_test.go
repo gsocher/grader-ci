@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/dpolansky/grader-ci/backend/db"
 	"github.com/dpolansky/grader-ci/model"
 )
 
@@ -14,6 +15,10 @@ func init() {
 	var err error
 	conn, err = sql.Open("sqlite3", model.SQLiteFilepath)
 	if err != nil {
+		panic(err)
+	}
+
+	if err = db.CreateSQLiteTables(conn); err != nil {
 		panic(err)
 	}
 }
