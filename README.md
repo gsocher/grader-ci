@@ -1,4 +1,7 @@
-# grader-ci 
+# grader-ci
+[![Build Status](https://travis-ci.org/dpolansky/grader-ci.svg?branch=master
+)](https://travis-ci.org/dpolansky/grader-ci)
+
 A prototype CI server for grading programming assignments.
 
 ## Overview
