@@ -1,0 +1,18 @@
+sudo: required
+dist: trusty
+
+language: go
+
+go:
+  - 1.8
+
+services:
+  - rabbitmq
+  - docker
+
+before_script:
+  - scripts/travis.sh
+
+script:
+  - go test -v $(go list ./... | grep -v /vendor/)
+
