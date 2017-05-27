@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script for running a travis build
+# Script that builds necessary docker images
 
 # build docker images
 IMAGE_DIR_PATH=$GOPATH/src/github.com/dpolansky/grader-ci/worker/build

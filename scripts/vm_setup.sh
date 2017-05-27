@@ -41,25 +41,6 @@ sudo gpasswd -a vagrant docker
 sudo service docker restart
 sudo newgrp docker
 
-# build images
-IMAGE_DIR_PATH="/home/vagrant/src/github.com/dpolansky/grader-ci/worker/build"
-
-# go
-docker build -t build-golang $IMAGE_DIR_PATH/golang
-
-# java8-maven
-docker pull maven
-docker build -t build-java8-maven $IMAGE_DIR_PATH/java8-maven
-
-# python3
-docker build -t build-python3 $IMAGE_DIR_PATH/python3
-
-# testing
-docker build -t build-test $IMAGE_DIR_PATH/test
-
-
-
-
 # install rabbitmq https://www.rabbitmq.com/install-debian.html
 echo 'deb http://www.rabbitmq.com/debian/ testing main' |
         sudo tee /etc/apt/sources.list.d/rabbitmq.list
@@ -72,3 +53,7 @@ sudo apt-get -y install rabbitmq-server
 
 # install sqlite
 sudo apt-get install sqlite3 libsqlite3-dev
+
+
+# build docker images
+sh build_docker_images.sh
