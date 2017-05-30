@@ -13,25 +13,17 @@ const (
 	bindInsertStatement = "insert or replace into test_binds(source_id, test_id, test_branch) values (?, ?, ?)"
 )
 
-type TestBindReader interface {
+type TestBindService interface {
 	GetTestBindBySourceRepositoryID(id int) (*model.TestBind, error)
 	GetTestBinds() ([]*model.TestBind, error)
-}
-
-type TestBindWriter interface {
 	UpdateTestBind(bind *model.TestBind) error
-}
-
-type TestBindReadWriter interface {
-	TestBindReader
-	TestBindWriter
 }
 
 type binder struct {
 	db *sql.DB
 }
 
-func NewSQLiteTestBindReadWriter(db *sql.DB) (TestBindReadWriter, error) {
+func NewSQLiteTestBindService(db *sql.DB) (TestBindService, error) {
 	return &binder{
 		db: db,
 	}, nil

@@ -17,10 +17,10 @@ type BuildRunner interface {
 
 type runner struct {
 	m amqp.Messenger
-	w BuildWriter
+	w BuildService
 }
 
-func NewAMQPBuildRunner(m amqp.Messenger, w BuildWriter) (BuildRunner, error) {
+func NewAMQPBuildRunner(m amqp.Messenger, w BuildService) (BuildRunner, error) {
 	return &runner{
 		m: m,
 		w: w,

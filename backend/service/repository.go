@@ -14,26 +14,18 @@ const (
 	repositoryInsertStatement = "insert or replace into repos (id, owner, name, avatar_url) values (?, ?, ?, ?)"
 )
 
-type RepositoryReader interface {
+type RepositoryService interface {
 	GetRepositoryByID(id int) (*model.Repository, error)
 	GetRepositoriesByOwner(owner string) ([]*model.Repository, error)
 	GetRepositories() ([]*model.Repository, error)
-}
-
-type RepositoryWriter interface {
 	UpdateRepository(m *model.Repository) error
-}
-
-type RepositoryReadWriter interface {
-	RepositoryReader
-	RepositoryWriter
 }
 
 type rep struct {
 	db *sql.DB
 }
 
-func NewSQLiteRepositoryReadWriter(db *sql.DB) (RepositoryReadWriter, error) {
+func NewSQLiteRepositoryService(db *sql.DB) (RepositoryService, error) {
 	return &rep{
 		db: db,
 	}, nil

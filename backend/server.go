@@ -10,21 +10,21 @@ import (
 )
 
 type Server struct {
-	Router               *mux.Router
-	BuildReadWriter      service.BuildReadWriter
-	BuildRunner          service.BuildRunner
-	RepositoryReadWriter service.RepositoryReadWriter
-	TestBindReadWriter   service.TestBindReadWriter
+	Router            *mux.Router
+	BuildService      service.BuildService
+	BuildRunner       service.BuildRunner
+	RepositoryService service.RepositoryService
+	TestBindService   service.TestBindService
 }
 
 // New initializes a server with its dependencies and registers its routes.
-func New(build service.BuildReadWriter, run service.BuildRunner, rep service.RepositoryReadWriter, bind service.TestBindReadWriter) (*Server, error) {
+func New(build service.BuildService, run service.BuildRunner, rep service.RepositoryService, bind service.TestBindService) (*Server, error) {
 	s := &Server{
-		Router:               mux.NewRouter(),
-		BuildReadWriter:      build,
-		RepositoryReadWriter: rep,
-		BuildRunner:          run,
-		TestBindReadWriter:   bind,
+		Router:            mux.NewRouter(),
+		BuildService:      build,
+		RepositoryService: rep,
+		BuildRunner:       run,
+		TestBindService:   bind,
 	}
 
 	// register routes
@@ -47,15 +47,15 @@ func (s *Server) Serve() {
 
 func (s *Server) registerRoutes() {
 	// api routes
-	route.RegisterGithubWebhookRoutes(s.Router, s.BuildRunner, s.RepositoryReadWriter, s.TestBindReadWriter)
-	route.RegisterBuildAPIRoutes(s.Router, s.BuildReadWriter)
-	route.RegisterRepositoryAPIRoutes(s.Router, s.RepositoryReadWriter)
-	route.RegisterBindAPIRoutes(s.Router, s.TestBindReadWriter)
+	route.RegisterGithubWebhookRoutes(s.Router, s.BuildRunner, s.RepositoryService, s.TestBindService)
+	route.RegisterBuildAPIRoutes(s.Router, s.BuildService)
+	route.RegisterRepositoryAPIRoutes(s.Router, s.RepositoryService)
+	route.RegisterBindAPIRoutes(s.Router, s.TestBindService)
 
 	// frontend routes
-	route.RegisterRepositoryFrontendRoutes(s.Router, s.RepositoryReadWriter)
-	route.RegisterBuildFrontendRoutes(s.Router, s.BuildReadWriter, s.RepositoryReadWriter)
-	route.RegisterBindFrontendRoutes(s.Router, s.TestBindReadWriter)
+	route.RegisterRepositoryFrontendRoutes(s.Router, s.RepositoryService)
+	route.RegisterBuildFrontendRoutes(s.Router, s.BuildService, s.RepositoryService)
+	route.RegisterBindFrontendRoutes(s.Router, s.TestBindService)
 
 	// assets route
 	route.RegisterAssetsRoute(s.Router)

@@ -13,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func RegisterGithubWebhookRoutes(router *mux.Router, run service.BuildRunner, rep service.RepositoryReadWriter, bind service.TestBindReader) {
+func RegisterGithubWebhookRoutes(router *mux.Router, run service.BuildRunner, rep service.RepositoryService, bind service.TestBindService) {
 	router.HandleFunc(pathURLGithubWebhookAPI,
 		parseWebhookHTTPHandler(run, rep, bind)).Methods("POST")
 }
@@ -31,7 +31,7 @@ type githubWebhookRequest struct {
 }
 
 // parseWebhookHTTPHandler is an endpoint for receiving github webhook requests.
-func parseWebhookHTTPHandler(run service.BuildRunner, rep service.RepositoryReadWriter, bind service.TestBindReader) func(rw http.ResponseWriter, req *http.Request) {
+func parseWebhookHTTPHandler(run service.BuildRunner, rep service.RepositoryService, bind service.TestBindService) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {

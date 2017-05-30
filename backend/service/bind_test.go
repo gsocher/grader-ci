@@ -24,7 +24,7 @@ func init() {
 }
 
 func TestUpdate(t *testing.T) {
-	binder, err := NewSQLiteTestBindReadWriter(conn)
+	binder, err := NewSQLiteTestBindService(conn)
 	if err != nil {
 		t.Fatalf("Failed to create bind service: %v", err)
 	}

@@ -17,7 +17,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func RegisterBuildFrontendRoutes(router *mux.Router, build service.BuildReader, rep service.RepositoryReadWriter) {
+func RegisterBuildFrontendRoutes(router *mux.Router, build service.BuildService, rep service.RepositoryService) {
 	router.HandleFunc("/{"+pathTokenRepositoryID+"}"+pathURLBuildsByRepositoryID,
 		getBuildsByRepositoryIDTemplateHTTPHandler(build, rep)).Methods("GET")
 
@@ -25,7 +25,7 @@ func RegisterBuildFrontendRoutes(router *mux.Router, build service.BuildReader, 
 		getBuildByIDTemplateHTTPHandler(build, rep)).Methods("GET")
 }
 
-func RegisterBuildAPIRoutes(router *mux.Router, build service.BuildReader) {
+func RegisterBuildAPIRoutes(router *mux.Router, build service.BuildService) {
 	router.HandleFunc(pathURLBuildAPI+"/{"+pathTokenBuildID+"}",
 		getBuildStatusHTTPHandler(build)).Methods("GET")
 
@@ -33,7 +33,7 @@ func RegisterBuildAPIRoutes(router *mux.Router, build service.BuildReader) {
 		getBuildsByRepositoryIDHTTPHandler(build)).Methods("GET")
 }
 
-func getBuildsByRepositoryIDTemplateHTTPHandler(build service.BuildReader, rep service.RepositoryReader) func(rw http.ResponseWriter, req *http.Request) {
+func getBuildsByRepositoryIDTemplateHTTPHandler(build service.BuildService, rep service.RepositoryService) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		id, found := vars[pathTokenRepositoryID]
@@ -98,7 +98,7 @@ func getBuildsByRepositoryIDTemplateHTTPHandler(build service.BuildReader, rep s
 	}
 }
 
-func getBuildByIDTemplateHTTPHandler(build service.BuildReader, rep service.RepositoryReader) func(rw http.ResponseWriter, req *http.Request) {
+func getBuildByIDTemplateHTTPHandler(build service.BuildService, rep service.RepositoryService) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		id, found := vars[pathTokenRepositoryID]
@@ -178,7 +178,7 @@ func getBuildByIDTemplateHTTPHandler(build service.BuildReader, rep service.Repo
 	}
 }
 
-func getBuildStatusHTTPHandler(build service.BuildReader) func(rw http.ResponseWriter, req *http.Request) {
+func getBuildStatusHTTPHandler(build service.BuildService) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		id, found := vars[pathTokenBuildID]
@@ -204,7 +204,7 @@ func getBuildStatusHTTPHandler(build service.BuildReader) func(rw http.ResponseW
 	}
 }
 
-func getBuildsByRepositoryIDHTTPHandler(build service.BuildReader) func(rw http.ResponseWriter, req *http.Request) {
+func getBuildsByRepositoryIDHTTPHandler(build service.BuildService) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 

@@ -17,18 +17,10 @@ const (
 	buildUpdateStatement = "update builds SET date=?, status=?, log=? WHERE id=?"
 )
 
-type BuildReadWriter interface {
-	BuildReader
-	BuildWriter
-}
-
-type BuildReader interface {
+type BuildService interface {
 	GetBuildByID(id int) (*model.BuildStatus, error)
 	GetBuildsByRepositoryID(id int) ([]*model.BuildStatus, error)
 	GetBuilds() ([]*model.BuildStatus, error)
-}
-
-type BuildWriter interface {
 	UpdateBuild(m *model.BuildStatus) (*model.BuildStatus, error)
 }
 
@@ -36,7 +28,7 @@ type builder struct {
 	db *sql.DB
 }
 
-func NewSQLiteBuildReadWriter(db *sql.DB) (BuildReadWriter, error) {
+func NewSQLiteBuildService(db *sql.DB) (BuildService, error) {
 	return &builder{
 		db: db,
 	}, nil

@@ -20,9 +20,9 @@ func main() {
 	must(err, "Failed to open SQLite database connection")
 	defer db.Close()
 
-	build, _ := service.NewSQLiteBuildReadWriter(db)
-	rep, _ := service.NewSQLiteRepositoryReadWriter(db)
-	bind, _ := service.NewSQLiteTestBindReadWriter(db)
+	build, _ := service.NewSQLiteBuildService(db)
+	rep, _ := service.NewSQLiteRepositoryService(db)
+	bind, _ := service.NewSQLiteTestBindService(db)
 	run, _ := service.NewAMQPBuildRunner(amqp, build)
 
 	serv, err := backend.New(build, run, rep, bind)

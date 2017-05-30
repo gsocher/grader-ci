@@ -13,12 +13,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func RegisterRepositoryFrontendRoutes(router *mux.Router, rep service.RepositoryReadWriter) {
+func RegisterRepositoryFrontendRoutes(router *mux.Router, rep service.RepositoryService) {
 	router.HandleFunc(pathURLRepositoryList,
 		getRepositoryListTemplateHTTPHandler(rep)).Methods("GET")
 }
 
-func RegisterRepositoryAPIRoutes(router *mux.Router, rep service.RepositoryReadWriter) {
+func RegisterRepositoryAPIRoutes(router *mux.Router, rep service.RepositoryService) {
 	router.HandleFunc(pathURLRepositoryAPI,
 		getRepositoriesHTTPHandler(rep)).Methods("GET")
 
@@ -26,7 +26,7 @@ func RegisterRepositoryAPIRoutes(router *mux.Router, rep service.RepositoryReadW
 		getRepositoriesByOwnerHTTPHandler(rep)).Methods("GET")
 }
 
-func getRepositoryListTemplateHTTPHandler(rep service.RepositoryReadWriter) func(rw http.ResponseWriter, req *http.Request) {
+func getRepositoryListTemplateHTTPHandler(rep service.RepositoryService) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		reps, err := rep.GetRepositories()
 		if err != nil {
@@ -40,7 +40,7 @@ func getRepositoryListTemplateHTTPHandler(rep service.RepositoryReadWriter) func
 	}
 }
 
-func getRepositoriesHTTPHandler(rep service.RepositoryReadWriter) func(rw http.ResponseWriter, req *http.Request) {
+func getRepositoriesHTTPHandler(rep service.RepositoryService) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		reps, err := rep.GetRepositories()
 		if err != nil {
@@ -53,7 +53,7 @@ func getRepositoriesHTTPHandler(rep service.RepositoryReadWriter) func(rw http.R
 	}
 }
 
-func getRepositoriesByOwnerHTTPHandler(rep service.RepositoryReadWriter) func(rw http.ResponseWriter, req *http.Request) {
+func getRepositoriesByOwnerHTTPHandler(rep service.RepositoryService) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 

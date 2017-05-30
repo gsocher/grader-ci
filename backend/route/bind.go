@@ -16,12 +16,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func RegisterBindFrontendRoutes(router *mux.Router, bind service.TestBindReader) {
+func RegisterBindFrontendRoutes(router *mux.Router, bind service.TestBindService) {
 	router.HandleFunc(pathURLBindList,
 		getTestBindListTemplateHTTPHandler(bind)).Methods("GET")
 }
 
-func RegisterBindAPIRoutes(router *mux.Router, bind service.TestBindReadWriter) {
+func RegisterBindAPIRoutes(router *mux.Router, bind service.TestBindService) {
 	router.HandleFunc(pathURLTestBindAPI,
 		updateTestBindHTTPHandler(bind)).Methods("POST")
 
@@ -32,7 +32,7 @@ func RegisterBindAPIRoutes(router *mux.Router, bind service.TestBindReadWriter) 
 		getTestBindBySourceRepositoryIDHTTPHandler(bind)).Methods("GET")
 }
 
-func getTestBindListTemplateHTTPHandler(bind service.TestBindReader) func(rw http.ResponseWriter, req *http.Request) {
+func getTestBindListTemplateHTTPHandler(bind service.TestBindService) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		binds, err := bind.GetTestBinds()
 		if err != nil {
@@ -46,7 +46,7 @@ func getTestBindListTemplateHTTPHandler(bind service.TestBindReader) func(rw htt
 	}
 }
 
-func updateTestBindHTTPHandler(bind service.TestBindReadWriter) func(rw http.ResponseWriter, req *http.Request) {
+func updateTestBindHTTPHandler(bind service.TestBindService) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
@@ -81,7 +81,7 @@ func updateTestBindHTTPHandler(bind service.TestBindReadWriter) func(rw http.Res
 	}
 }
 
-func getTestBindsHTTPHandler(bind service.TestBindReadWriter) func(rw http.ResponseWriter, req *http.Request) {
+func getTestBindsHTTPHandler(bind service.TestBindService) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		binds, err := bind.GetTestBinds()
 		if err != nil {
@@ -94,7 +94,7 @@ func getTestBindsHTTPHandler(bind service.TestBindReadWriter) func(rw http.Respo
 	}
 }
 
-func getTestBindBySourceRepositoryIDHTTPHandler(bind service.TestBindReadWriter) func(rw http.ResponseWriter, req *http.Request) {
+func getTestBindBySourceRepositoryIDHTTPHandler(bind service.TestBindService) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 
