@@ -5,6 +5,8 @@ import (
 	"os"
 	"testing"
 
+	"fmt"
+
 	"github.com/dpolansky/grader-ci/model"
 )
 
@@ -50,28 +52,46 @@ func ExecStatement(db *sql.DB, ps string, data ...interface{}) (int, error) {
 	return int(id), tx.Commit()
 }
 
-func SetupTables(t *testing.T) *sql.DB {
+func SetupTables() error {
+	conn, err := sql.Open("sqlite3", model.SQLiteFilepath)
+	if err != nil {
+		return fmt.Errorf("failed to open sqlite conn: %v", err)
+	}
+
+	if err = CreateSQLiteTables(conn); err != nil {
+		return fmt.Errorf("failed to create tables: %v", err)
+	}
+
+	if err := conn.Close(); err != nil {
+		return fmt.Errorf("failed to close conn while setting up tables: %v", err)
+	}
+
+	return nil
+}
+
+func TeardownTables() error {
+	if err := os.Remove(model.SQLiteFilepath); err != nil {
+		return fmt.Errorf("failed to remove sqlite db: %v", err)
+	}
+	return nil
+}
+
+func SetupConnection(t *testing.T) *sql.DB {
 	conn, err := sql.Open("sqlite3", model.SQLiteFilepath)
 	if err != nil {
 		t.Fatalf("failed to open sqlite conn: %v", err)
 	}
 
-	if err = CreateSQLiteTables(conn); err != nil {
-		t.Fatalf("failed to create tables: %v", err)
-	}
-
 	return conn
 }
 
-func TeardownTables(conn *sql.DB, t *testing.T) {
-	err := conn.Close()
-	if err != nil {
-		t.Fatalf("failed to close sqlite conn: %v", err)
+func TeardownConnection(conn *sql.DB, cleanupStatement string, t *testing.T) {
+	if _, err := ExecStatement(conn, cleanupStatement); err != nil {
+		t.Fatalf("failed to exec cleanup statement %v: %v", cleanupStatement, err)
 	}
 
-	err = os.Remove(model.SQLiteFilepath)
-	if err != nil {
-		t.Fatalf("failed to remove sqlite db: %v", err)
+	if err := conn.Close(); err != nil {
+		t.Fatalf("failed to close sqlite conn: %v", err)
 	}
 }
 

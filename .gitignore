@@ -42,3 +42,7 @@ vendor/**
 
 # sqlite
 *.db
+
+# coverage
+.cover
+coverage.html
