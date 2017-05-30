@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/dpolansky/grader-ci/backend/dbutil"
 	"github.com/dpolansky/grader-ci/model"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -48,13 +49,13 @@ func (b *builder) UpdateBuild(m *model.BuildStatus) (*model.BuildStatus, error) 
 	}
 
 	if _, err := b.GetBuildByID(m.ID); err == nil {
-		_, err = execStatement(b.db, buildUpdateStatement, m.LastUpdate, m.Status, m.Log, m.ID)
+		_, err = dbutil.ExecStatement(b.db, buildUpdateStatement, m.LastUpdate, m.Status, m.Log, m.ID)
 		if err != nil {
 			return nil, fmt.Errorf("Build update failed: %v", err)
 		}
 	} else {
 		// could not find build, so insert it
-		id, err := execStatement(b.db, buildInsertStatement, m.Source.ID, m.Source.CloneURL, m.Source.Branch, m.Tested, m.Test.ID, m.Test.CloneURL, m.Test.Branch, m.Status, m.LastUpdate, m.Log)
+		id, err := dbutil.ExecStatement(b.db, buildInsertStatement, m.Source.ID, m.Source.CloneURL, m.Source.Branch, m.Tested, m.Test.ID, m.Test.CloneURL, m.Test.Branch, m.Status, m.LastUpdate, m.Log)
 		if err != nil {
 			return nil, fmt.Errorf("Build insert failed: %v", err)
 		}

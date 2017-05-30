@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/dpolansky/grader-ci/backend/dbutil"
 	"github.com/dpolansky/grader-ci/model"
 )
 
@@ -57,7 +58,7 @@ func (b *binder) GetTestBinds() ([]*model.TestBind, error) {
 }
 
 func (b *binder) UpdateTestBind(bind *model.TestBind) error {
-	_, err := execStatement(b.db, bindInsertStatement, bind.SourceID, bind.TestID, bind.TestBranch)
+	_, err := dbutil.ExecStatement(b.db, bindInsertStatement, bind.SourceID, bind.TestID, bind.TestBranch)
 	return err
 }
 

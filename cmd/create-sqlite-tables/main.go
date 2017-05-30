@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"log"
 
-	"github.com/dpolansky/grader-ci/backend/db"
+	"github.com/dpolansky/grader-ci/backend/dbutil"
 	"github.com/dpolansky/grader-ci/model"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -19,7 +19,7 @@ func main() {
 	defer conn.Close()
 
 	log.Printf("Creating tables\n")
-	err = db.CreateSQLiteTables(conn)
+	err = dbutil.CreateSQLiteTables(conn)
 	if err != nil {
 		panic(err)
 	}

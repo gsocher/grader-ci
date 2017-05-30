@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/dpolansky/grader-ci/backend/dbutil"
 	"github.com/dpolansky/grader-ci/model"
 )
 
@@ -39,7 +40,7 @@ func NewSQLiteRepositoryReadWriter(db *sql.DB) (RepositoryReadWriter, error) {
 }
 
 func (r *rep) UpdateRepository(m *model.Repository) error {
-	_, err := execStatement(r.db, repositoryInsertStatement, m.ID, m.Owner, m.Name, m.AvatarURL)
+	_, err := dbutil.ExecStatement(r.db, repositoryInsertStatement, m.ID, m.Owner, m.Name, m.AvatarURL)
 	return err
 }
 

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/dpolansky/grader-ci/backend/db"
+	"github.com/dpolansky/grader-ci/backend/dbutil"
 	"github.com/dpolansky/grader-ci/model"
 )
 
@@ -18,7 +18,7 @@ func init() {
 		panic(err)
 	}
 
-	if err = db.CreateSQLiteTables(conn); err != nil {
+	if err = dbutil.CreateSQLiteTables(conn); err != nil {
 		panic(err)
 	}
 }
