@@ -1,6 +1,12 @@
 package dbutil
 
-import "database/sql"
+import (
+	"database/sql"
+	"os"
+	"testing"
+
+	"github.com/dpolansky/grader-ci/model"
+)
 
 func CreateSQLiteTables(db *sql.DB) error {
 	tables := []func(*sql.DB) error{
@@ -20,7 +26,12 @@ func CreateSQLiteTables(db *sql.DB) error {
 }
 
 func ExecStatement(db *sql.DB, ps string, data ...interface{}) (int, error) {
-	stmt, err := db.Prepare(ps)
+	tx, err := db.Begin()
+	if err != nil {
+		return 0, err
+	}
+
+	stmt, err := tx.Prepare(ps)
 	if err != nil {
 		return 0, err
 	}
@@ -36,7 +47,32 @@ func ExecStatement(db *sql.DB, ps string, data ...interface{}) (int, error) {
 		return 0, err
 	}
 
-	return int(id), nil
+	return int(id), tx.Commit()
+}
+
+func SetupTables(t *testing.T) *sql.DB {
+	conn, err := sql.Open("sqlite3", model.SQLiteFilepath)
+	if err != nil {
+		t.Fatalf("failed to open sqlite conn: %v", err)
+	}
+
+	if err = CreateSQLiteTables(conn); err != nil {
+		t.Fatalf("failed to create tables: %v", err)
+	}
+
+	return conn
+}
+
+func TeardownTables(conn *sql.DB, t *testing.T) {
+	err := conn.Close()
+	if err != nil {
+		t.Fatalf("failed to close sqlite conn: %v", err)
+	}
+
+	err = os.Remove(model.SQLiteFilepath)
+	if err != nil {
+		t.Fatalf("failed to remove sqlite db: %v", err)
+	}
 }
 
 func createReposTable(db *sql.DB) error {

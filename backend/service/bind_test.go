@@ -1,7 +1,6 @@
 package service
 
 import (
-	"database/sql"
 	"reflect"
 	"testing"
 
@@ -9,21 +8,10 @@ import (
 	"github.com/dpolansky/grader-ci/model"
 )
 
-var conn *sql.DB
+func TestUpdateTestBind(t *testing.T) {
+	conn := dbutil.SetupTables(t)
+	defer dbutil.TeardownTables(conn, t)
 
-func init() {
-	var err error
-	conn, err = sql.Open("sqlite3", model.SQLiteFilepath)
-	if err != nil {
-		panic(err)
-	}
-
-	if err = dbutil.CreateSQLiteTables(conn); err != nil {
-		panic(err)
-	}
-}
-
-func TestUpdate(t *testing.T) {
 	binder, err := NewSQLiteTestBindService(conn)
 	if err != nil {
 		t.Fatalf("Failed to create bind service: %v", err)
