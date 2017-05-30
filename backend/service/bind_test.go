@@ -1,7 +1,6 @@
 package service
 
 import (
-	"os"
 	"reflect"
 	"testing"
 
@@ -9,25 +8,11 @@ import (
 	"github.com/dpolansky/grader-ci/model"
 )
 
-const testTestBindsCleanupStatement = "delete from test_binds"
-
-func TestMain(m *testing.M) {
-	if err := dbutil.SetupTables(); err != nil {
-		panic(err)
-	}
-
-	exit := m.Run()
-
-	if err := dbutil.TeardownTables(); err != nil {
-		panic(err)
-	}
-
-	os.Exit(exit)
-}
+const testTestBindServiceCleanupStatement = "delete from test_binds"
 
 func TestUpdateTestBind(t *testing.T) {
 	conn := dbutil.SetupConnection(t)
-	defer dbutil.TeardownConnection(conn, testTestBindsCleanupStatement, t)
+	defer dbutil.TeardownConnection(conn, testTestBindServiceCleanupStatement, t)
 
 	b, err := NewSQLiteTestBindService(conn)
 	if err != nil {
@@ -57,7 +42,7 @@ func TestUpdateTestBind(t *testing.T) {
 
 func TestGetTestBindDoesntExist(t *testing.T) {
 	conn := dbutil.SetupConnection(t)
-	defer dbutil.TeardownConnection(conn, testTestBindsCleanupStatement, t)
+	defer dbutil.TeardownConnection(conn, testTestBindServiceCleanupStatement, t)
 
 	b, err := NewSQLiteTestBindService(conn)
 	if err != nil {
@@ -71,7 +56,7 @@ func TestGetTestBindDoesntExist(t *testing.T) {
 
 func TestGetTestBinds(t *testing.T) {
 	conn := dbutil.SetupConnection(t)
-	defer dbutil.TeardownConnection(conn, testTestBindsCleanupStatement, t)
+	defer dbutil.TeardownConnection(conn, testTestBindServiceCleanupStatement, t)
 
 	b, err := NewSQLiteTestBindService(conn)
 	if err != nil {
@@ -115,7 +100,7 @@ func TestGetTestBinds(t *testing.T) {
 
 func TestGetTestBindsEmpty(t *testing.T) {
 	conn := dbutil.SetupConnection(t)
-	defer dbutil.TeardownConnection(conn, testTestBindsCleanupStatement, t)
+	defer dbutil.TeardownConnection(conn, testTestBindServiceCleanupStatement, t)
 
 	b, err := NewSQLiteTestBindService(conn)
 	if err != nil {
