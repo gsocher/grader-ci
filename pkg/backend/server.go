@@ -47,7 +47,7 @@ func (s *server) Run() {
 	}
 
 	logrus.Infof("Starting server on %v", serv.Addr)
-	go s.config.BuildMessageService.ListenForBuildMessages()
+	go s.config.BuildMessageService.ListenForBuildMessages(nil)
 
 	logrus.Fatalf("Server shut down: %v\n", serv.ListenAndServe())
 }

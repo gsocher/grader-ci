@@ -12,7 +12,7 @@ import (
 
 type BuildMessageService interface {
 	SendBuild(*model.BuildStatus) error
-	ListenForBuildMessages() <-chan int
+	ListenForBuildMessages(die chan struct{}) <-chan int
 }
 
 type messageService struct {
@@ -28,10 +28,10 @@ func NewAMQPBuildMessageService(messenger amqp.Messenger, buildService BuildServ
 }
 
 // returns a channel that can be listened to for IDs of received build updates
-func (m *messageService) ListenForBuildMessages() <-chan int {
+func (m *messageService) ListenForBuildMessages(die chan struct{}) <-chan int {
 	received := make(chan int)
 
-	go func(received chan int) {
+	go func(received chan int, die chan struct{}) {
 		callback := func(b []byte) {
 			var build model.BuildStatus
 
@@ -48,19 +48,19 @@ func (m *messageService) ListenForBuildMessages() <-chan int {
 
 			received <- build.ID
 		}
-		m.messenger.ReadFromQueueWithCallback(model.AMQPStatusQueue, callback, nil)
-	}(received)
+		m.messenger.ReadFromQueueWithCallback(model.AMQPStatusQueue, callback, die)
+	}(received, die)
 
 	return received
 }
 
 func (m *messageService) SendBuild(status *model.BuildStatus) error {
-	status, err := m.buildService.UpdateBuild(status)
+	updated, err := m.buildService.UpdateBuild(status)
 	if err != nil {
 		return fmt.Errorf("Failed to update status for build %+v: %v", m, err)
 	}
 
-	bytes, err := json.Marshal(m)
+	bytes, err := json.Marshal(updated)
 	if err != nil {
 		return fmt.Errorf("Failed to marshal build to bytes: %v", err)
 	}
@@ -70,6 +70,6 @@ func (m *messageService) SendBuild(status *model.BuildStatus) error {
 		return fmt.Errorf("Failed to send build to queue: %v", err)
 	}
 
-	logrus.WithField("id", status.ID).Infof("Sent build")
+	logrus.WithField("id", updated.ID).Infof("Sent build")
 	return nil
 }

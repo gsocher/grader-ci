@@ -19,10 +19,12 @@ type FakeBuildMessageService struct {
 	sendBuildReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ListenForBuildMessagesStub        func() <-chan int
+	ListenForBuildMessagesStub        func(die chan struct{}) <-chan int
 	listenForBuildMessagesMutex       sync.RWMutex
-	listenForBuildMessagesArgsForCall []struct{}
-	listenForBuildMessagesReturns     struct {
+	listenForBuildMessagesArgsForCall []struct {
+		die chan struct{}
+	}
+	listenForBuildMessagesReturns struct {
 		result1 <-chan int
 	}
 	listenForBuildMessagesReturnsOnCall map[int]struct {
@@ -80,14 +82,16 @@ func (fake *FakeBuildMessageService) SendBuildReturnsOnCall(i int, result1 error
 	}{result1}
 }
 
-func (fake *FakeBuildMessageService) ListenForBuildMessages() <-chan int {
+func (fake *FakeBuildMessageService) ListenForBuildMessages(die chan struct{}) <-chan int {
 	fake.listenForBuildMessagesMutex.Lock()
 	ret, specificReturn := fake.listenForBuildMessagesReturnsOnCall[len(fake.listenForBuildMessagesArgsForCall)]
-	fake.listenForBuildMessagesArgsForCall = append(fake.listenForBuildMessagesArgsForCall, struct{}{})
-	fake.recordInvocation("ListenForBuildMessages", []interface{}{})
+	fake.listenForBuildMessagesArgsForCall = append(fake.listenForBuildMessagesArgsForCall, struct {
+		die chan struct{}
+	}{die})
+	fake.recordInvocation("ListenForBuildMessages", []interface{}{die})
 	fake.listenForBuildMessagesMutex.Unlock()
 	if fake.ListenForBuildMessagesStub != nil {
-		return fake.ListenForBuildMessagesStub()
+		return fake.ListenForBuildMessagesStub(die)
 	}
 	if specificReturn {
 		return ret.result1
@@ -99,6 +103,12 @@ func (fake *FakeBuildMessageService) ListenForBuildMessagesCallCount() int {
 	fake.listenForBuildMessagesMutex.RLock()
 	defer fake.listenForBuildMessagesMutex.RUnlock()
 	return len(fake.listenForBuildMessagesArgsForCall)
+}
+
+func (fake *FakeBuildMessageService) ListenForBuildMessagesArgsForCall(i int) chan struct{} {
+	fake.listenForBuildMessagesMutex.RLock()
+	defer fake.listenForBuildMessagesMutex.RUnlock()
+	return fake.listenForBuildMessagesArgsForCall[i].die
 }
 
 func (fake *FakeBuildMessageService) ListenForBuildMessagesReturns(result1 <-chan int) {

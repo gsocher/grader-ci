@@ -11,7 +11,6 @@ type Messenger interface {
 	ReadFromQueueWithCallback(queueName string, callback func([]byte), die chan struct{}) error
 	SendToQueue(queueName string, b []byte) error
 	PurgeQueue(queueName string) error
-	Close() error
 }
 
 // NewAMQPClient creates a new AMQP client and creates a connection with the given URL
@@ -92,6 +91,15 @@ func (c *amqpClient) ReadFromQueueWithCallback(queueName string, callback func([
 		return fmt.Errorf("Failed to declare a queue: %v", err)
 	}
 
+	err = ch.Qos(
+		1,     // prefetch count
+		0,     // prefetch size
+		false, // global
+	)
+	if err != nil {
+		return fmt.Errorf("Failed to set Qos: %v", err)
+	}
+
 	msgs, err := ch.Consume(
 		queueName, // queue
 		"",        // consumer
@@ -125,8 +133,4 @@ func (c *amqpClient) PurgeQueue(queueName string) error {
 
 	_, err = ch.QueuePurge(queueName, true)
 	return err
-}
-
-func (c *amqpClient) Close() error {
-	return c.conn.Close()
 }
