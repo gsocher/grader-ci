@@ -15,7 +15,7 @@ before_install:
   - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-engine
 
 before_script:
-  - scripts/build_docker_images.sh
+  - install/build_docker_images.sh
 
 script:
   - go test -v $(go list ./... | grep -v /vendor/)
