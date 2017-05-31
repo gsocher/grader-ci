@@ -10,21 +10,23 @@ import (
 )
 
 type Server struct {
-	Router              *mux.Router
-	BuildService        service.BuildService
-	BuildMessageService service.BuildMessageService
-	RepositoryService   service.RepositoryService
-	TestBindService     service.TestBindService
+	Router               *mux.Router
+	BuildService         service.BuildService
+	BuildMessageService  service.BuildMessageService
+	RepositoryService    service.RepositoryService
+	TestBindService      service.TestBindService
+	GithubWebhookService service.GithubWebhookService
 }
 
 // New initializes a server with its dependencies and registers its routes.
-func New(build service.BuildService, msg service.BuildMessageService, rep service.RepositoryService, bind service.TestBindService) (*Server, error) {
+func New(build service.BuildService, msg service.BuildMessageService, rep service.RepositoryService, bind service.TestBindService, github service.GithubWebhookService) (*Server, error) {
 	s := &Server{
-		Router:              mux.NewRouter(),
-		BuildService:        build,
-		RepositoryService:   rep,
-		BuildMessageService: msg,
-		TestBindService:     bind,
+		Router:               mux.NewRouter(),
+		BuildService:         build,
+		RepositoryService:    rep,
+		BuildMessageService:  msg,
+		TestBindService:      bind,
+		GithubWebhookService: github,
 	}
 
 	// register routes
@@ -47,7 +49,7 @@ func (s *Server) Serve() {
 
 func (s *Server) registerRoutes() {
 	// api routes
-	route.RegisterGithubWebhookRoutes(s.Router, s.BuildMessageService, s.RepositoryService, s.TestBindService)
+	route.RegisterGithubWebhookRoutes(s.Router, s.GithubWebhookService)
 	route.RegisterBuildAPIRoutes(s.Router, s.BuildService)
 	route.RegisterRepositoryAPIRoutes(s.Router, s.RepositoryService)
 	route.RegisterBindAPIRoutes(s.Router, s.TestBindService)

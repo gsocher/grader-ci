@@ -12,8 +12,8 @@ func TestHandleRequest(t *testing.T) {
 	fakeRepo := new(fakes.FakeRepositoryService)
 	fakeMsg := new(fakes.FakeBuildMessageService)
 	github := NewGithubWebhookService(&GithubWebhookServiceConfig{
-		repoService: fakeRepo,
-		msgService:  fakeMsg,
+		RepoService: fakeRepo,
+		MsgService:  fakeMsg,
 	})
 
 	req := createFakeGithubWebhookRequest()
@@ -35,8 +35,8 @@ func TestHandleRequestErrorsIfRepoServiceErrors(t *testing.T) {
 	fakeRepo := new(fakes.FakeRepositoryService)
 	fakeMsg := new(fakes.FakeBuildMessageService)
 	github := NewGithubWebhookService(&GithubWebhookServiceConfig{
-		repoService: fakeRepo,
-		msgService:  fakeMsg,
+		RepoService: fakeRepo,
+		MsgService:  fakeMsg,
 	})
 
 	fakeRepo.UpdateRepositoryReturns(errors.New("update failed"))
@@ -51,8 +51,8 @@ func TestHandleRequestErrorsIfMsgServiceErrors(t *testing.T) {
 	fakeRepo := new(fakes.FakeRepositoryService)
 	fakeMsg := new(fakes.FakeBuildMessageService)
 	github := NewGithubWebhookService(&GithubWebhookServiceConfig{
-		repoService: fakeRepo,
-		msgService:  fakeMsg,
+		RepoService: fakeRepo,
+		MsgService:  fakeMsg,
 	})
 
 	fakeMsg.SendBuildReturns(errors.New("send failed"))

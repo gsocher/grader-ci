@@ -24,8 +24,12 @@ func main() {
 	rep, _ := service.NewSQLiteRepositoryService(db)
 	bind, _ := service.NewSQLiteTestBindService(db)
 	msg, _ := service.NewAMQPBuildMessageService(amqp, build)
+	github := service.NewGithubWebhookService(&service.GithubWebhookServiceConfig{
+		RepoService: rep,
+		MsgService:  msg,
+	})
 
-	serv, err := backend.New(build, msg, rep, bind)
+	serv, err := backend.New(build, msg, rep, bind, github)
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to start server")
 	}

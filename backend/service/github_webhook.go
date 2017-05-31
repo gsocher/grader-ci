@@ -16,8 +16,8 @@ type githubService struct {
 }
 
 type GithubWebhookServiceConfig struct {
-	repoService RepositoryService
-	msgService  BuildMessageService
+	RepoService RepositoryService
+	MsgService  BuildMessageService
 }
 
 func NewGithubWebhookService(cfg *GithubWebhookServiceConfig) GithubWebhookService {
@@ -26,7 +26,7 @@ func NewGithubWebhookService(cfg *GithubWebhookServiceConfig) GithubWebhookServi
 
 func (g *githubService) HandleRequest(req *model.GithubWebhookRequest) error {
 	// update the repository to reflect any changes
-	if err := g.config.repoService.UpdateRepository(&model.Repository{
+	if err := g.config.RepoService.UpdateRepository(&model.Repository{
 		ID:        req.Repository.ID,
 		Name:      req.Repository.Name,
 		Owner:     req.Repository.Owner.Name,
@@ -36,7 +36,7 @@ func (g *githubService) HandleRequest(req *model.GithubWebhookRequest) error {
 	}
 
 	// notify the build runner to trigger a build
-	return g.config.msgService.SendBuild(&model.BuildStatus{
+	return g.config.MsgService.SendBuild(&model.BuildStatus{
 		Source: &model.RepositoryMetadata{
 			ID:       req.Repository.ID,
 			Branch:   filepath.Base(req.Ref),
