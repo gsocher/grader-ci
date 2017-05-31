@@ -12,7 +12,7 @@ import (
 
 type BuildMessageService interface {
 	SendBuild(*model.BuildStatus) error
-	ListenForBuildMessages()
+	ListenForBuildMessages() <-chan int
 }
 
 type messageService struct {
@@ -27,21 +27,31 @@ func NewAMQPBuildMessageService(messenger amqp.Messenger, buildService BuildServ
 	}, nil
 }
 
-func (m *messageService) ListenForBuildMessages() {
-	m.messenger.ReadFromQueueWithCallback(model.AMQPStatusQueue, func(b []byte) {
-		var build model.BuildStatus
+// returns a channel that can be listened to for IDs of received build updates
+func (m *messageService) ListenForBuildMessages() <-chan int {
+	received := make(chan int)
 
-		err := json.Unmarshal(b, &build)
-		if err != nil {
-			logrus.WithError(err).WithField("body", string(b)).Errorf("Failed to unmarshal status update")
-			return
-		}
+	go func(received chan int) {
+		callback := func(b []byte) {
+			var build model.BuildStatus
 
-		_, err = m.buildService.UpdateBuild(&build)
-		if err != nil {
-			logrus.WithError(err).WithField("id", build.ID).Errorf("Failed to update build")
+			err := json.Unmarshal(b, &build)
+			if err != nil {
+				logrus.WithError(err).WithField("body", string(b)).Errorf("Failed to unmarshal status update")
+				return
+			}
+
+			_, err = m.buildService.UpdateBuild(&build)
+			if err != nil {
+				logrus.WithError(err).WithField("id", build.ID).Errorf("Failed to update build")
+			}
+
+			received <- build.ID
 		}
-	}, nil)
+		m.messenger.ReadFromQueueWithCallback(model.AMQPStatusQueue, callback, nil)
+	}(received)
+
+	return received
 }
 
 func (m *messageService) SendBuild(status *model.BuildStatus) error {

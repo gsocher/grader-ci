@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/dpolansky/grader-ci/pkg/amqp"
 	"github.com/dpolansky/grader-ci/pkg/model"
 	"github.com/dpolansky/grader-ci/pkg/worker"
+	"github.com/sirupsen/logrus"
 
 	"os"
 )

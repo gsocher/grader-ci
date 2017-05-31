@@ -19,11 +19,17 @@ type FakeBuildMessageService struct {
 	sendBuildReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ListenForBuildMessagesStub        func()
+	ListenForBuildMessagesStub        func() <-chan int
 	listenForBuildMessagesMutex       sync.RWMutex
 	listenForBuildMessagesArgsForCall []struct{}
-	invocations                       map[string][][]interface{}
-	invocationsMutex                  sync.RWMutex
+	listenForBuildMessagesReturns     struct {
+		result1 <-chan int
+	}
+	listenForBuildMessagesReturnsOnCall map[int]struct {
+		result1 <-chan int
+	}
+	invocations      map[string][][]interface{}
+	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeBuildMessageService) SendBuild(arg1 *model.BuildStatus) error {
@@ -74,20 +80,44 @@ func (fake *FakeBuildMessageService) SendBuildReturnsOnCall(i int, result1 error
 	}{result1}
 }
 
-func (fake *FakeBuildMessageService) ListenForBuildMessages() {
+func (fake *FakeBuildMessageService) ListenForBuildMessages() <-chan int {
 	fake.listenForBuildMessagesMutex.Lock()
+	ret, specificReturn := fake.listenForBuildMessagesReturnsOnCall[len(fake.listenForBuildMessagesArgsForCall)]
 	fake.listenForBuildMessagesArgsForCall = append(fake.listenForBuildMessagesArgsForCall, struct{}{})
 	fake.recordInvocation("ListenForBuildMessages", []interface{}{})
 	fake.listenForBuildMessagesMutex.Unlock()
 	if fake.ListenForBuildMessagesStub != nil {
-		fake.ListenForBuildMessagesStub()
+		return fake.ListenForBuildMessagesStub()
 	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.listenForBuildMessagesReturns.result1
 }
 
 func (fake *FakeBuildMessageService) ListenForBuildMessagesCallCount() int {
 	fake.listenForBuildMessagesMutex.RLock()
 	defer fake.listenForBuildMessagesMutex.RUnlock()
 	return len(fake.listenForBuildMessagesArgsForCall)
+}
+
+func (fake *FakeBuildMessageService) ListenForBuildMessagesReturns(result1 <-chan int) {
+	fake.ListenForBuildMessagesStub = nil
+	fake.listenForBuildMessagesReturns = struct {
+		result1 <-chan int
+	}{result1}
+}
+
+func (fake *FakeBuildMessageService) ListenForBuildMessagesReturnsOnCall(i int, result1 <-chan int) {
+	fake.ListenForBuildMessagesStub = nil
+	if fake.listenForBuildMessagesReturnsOnCall == nil {
+		fake.listenForBuildMessagesReturnsOnCall = make(map[int]struct {
+			result1 <-chan int
+		})
+	}
+	fake.listenForBuildMessagesReturnsOnCall[i] = struct {
+		result1 <-chan int
+	}{result1}
 }
 
 func (fake *FakeBuildMessageService) Invocations() map[string][][]interface{} {

@@ -10,8 +10,8 @@ import (
 
 	"os"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/dpolansky/grader-ci/pkg/model"
+	"github.com/sirupsen/logrus"
 )
 
 // Build directory containing docker images/build scripts relative to GOPATH
