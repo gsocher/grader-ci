@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dpolansky/grader-ci/backend/dbutil"
+	"github.com/dpolansky/grader-ci/pkg/backend/dbutil"
 )
 
 func TestMain(m *testing.M) {

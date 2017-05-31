@@ -1,7 +1,7 @@
 package worker
 
 import (
-	"github.com/dpolansky/grader-ci/model"
+	"github.com/dpolansky/grader-ci/pkg/model"
 
 	"gopkg.in/yaml.v2"
 )

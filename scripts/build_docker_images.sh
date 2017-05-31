@@ -2,7 +2,7 @@
 # Script that builds necessary docker images
 
 # build docker images
-IMAGE_DIR_PATH=$GOPATH/src/github.com/dpolansky/grader-ci/worker/build
+IMAGE_DIR_PATH=$GOPATH/src/github.com/dpolansky/grader-ci/pkg/worker/build
 
 # go
 docker build -t build-golang $IMAGE_DIR_PATH/golang

@@ -11,8 +11,8 @@ import (
 
 	"strings"
 
-	"github.com/dpolansky/grader-ci/backend/service"
-	"github.com/dpolansky/grader-ci/model"
+	"github.com/dpolansky/grader-ci/pkg/backend/service"
+	"github.com/dpolansky/grader-ci/pkg/model"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/gorilla/mux"
 )

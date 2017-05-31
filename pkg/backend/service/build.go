@@ -6,8 +6,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/dpolansky/grader-ci/backend/dbutil"
-	"github.com/dpolansky/grader-ci/model"
+	"github.com/dpolansky/grader-ci/pkg/backend/dbutil"
+	"github.com/dpolansky/grader-ci/pkg/model"
 	_ "github.com/mattn/go-sqlite3"
 )
 

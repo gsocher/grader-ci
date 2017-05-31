@@ -6,7 +6,7 @@ import (
 
 	"bytes"
 
-	"github.com/dpolansky/grader-ci/model"
+	"github.com/dpolansky/grader-ci/pkg/model"
 )
 
 const testReposURL = "https://github.com/dpolansky/ci-test-repos"

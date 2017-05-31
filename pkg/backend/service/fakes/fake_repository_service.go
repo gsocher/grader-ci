@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/dpolansky/grader-ci/model"
+	"github.com/dpolansky/grader-ci/pkg/model"
 )
 
 type FakeRepositoryService struct {

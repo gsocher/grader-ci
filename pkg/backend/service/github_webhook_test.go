@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/dpolansky/grader-ci/backend/service/fakes"
-	"github.com/dpolansky/grader-ci/model"
+	"github.com/dpolansky/grader-ci/pkg/backend/service/fakes"
+	"github.com/dpolansky/grader-ci/pkg/model"
 )
 
 func TestHandleRequest(t *testing.T) {

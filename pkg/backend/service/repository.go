@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/dpolansky/grader-ci/backend/dbutil"
-	"github.com/dpolansky/grader-ci/model"
+	"github.com/dpolansky/grader-ci/pkg/backend/dbutil"
+	"github.com/dpolansky/grader-ci/pkg/model"
 )
 
 const (

@@ -7,7 +7,7 @@ import (
 
 	"fmt"
 
-	"github.com/dpolansky/grader-ci/model"
+	"github.com/dpolansky/grader-ci/pkg/model"
 )
 
 func CreateSQLiteTables(db *sql.DB) error {

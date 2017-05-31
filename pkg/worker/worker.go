@@ -11,11 +11,11 @@ import (
 	"os"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/dpolansky/grader-ci/model"
+	"github.com/dpolansky/grader-ci/pkg/model"
 )
 
 // Build directory containing docker images/build scripts relative to GOPATH
-const buildDir = "src/github.com/dpolansky/grader-ci/worker/build"
+const buildDir = "src/github.com/dpolansky/grader-ci/pkg/worker/build"
 
 type Worker struct {
 	dockerClient DockerClient

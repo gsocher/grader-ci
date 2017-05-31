@@ -5,10 +5,10 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/dpolansky/grader-ci/amqp"
-	"github.com/dpolansky/grader-ci/backend"
-	"github.com/dpolansky/grader-ci/backend/service"
-	"github.com/dpolansky/grader-ci/model"
+	"github.com/dpolansky/grader-ci/pkg/amqp"
+	"github.com/dpolansky/grader-ci/pkg/backend"
+	"github.com/dpolansky/grader-ci/pkg/backend/service"
+	"github.com/dpolansky/grader-ci/pkg/model"
 	"github.com/sirupsen/logrus"
 )
 

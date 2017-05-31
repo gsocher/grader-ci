@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/dpolansky/grader-ci/backend/service/fakes"
-	"github.com/dpolansky/grader-ci/model"
+	"github.com/dpolansky/grader-ci/pkg/backend/service/fakes"
+	"github.com/dpolansky/grader-ci/pkg/model"
 	"github.com/gorilla/mux"
 )
 
