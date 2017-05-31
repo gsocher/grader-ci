@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/dpolansky/grader-ci/backend/service/fakes"
+	"github.com/dpolansky/grader-ci/model"
 )
 
 func TestHandleRequest(t *testing.T) {
@@ -62,8 +63,8 @@ func TestHandleRequestErrorsIfMsgServiceErrors(t *testing.T) {
 	}
 }
 
-func createFakeGithubWebhookRequest() GithubWebhookRequest {
-	req := GithubWebhookRequest{Ref: "refs/heads/master"}
+func createFakeGithubWebhookRequest() *model.GithubWebhookRequest {
+	req := &model.GithubWebhookRequest{Ref: "refs/heads/master"}
 	req.Repository.ID = 0
 	req.Repository.Name = "foo"
 	req.Repository.Owner.Name = "bar"

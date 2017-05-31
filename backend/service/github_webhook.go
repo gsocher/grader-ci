@@ -8,7 +8,7 @@ import (
 )
 
 type GithubWebhookService interface {
-	HandleRequest(GithubWebhookRequest) error
+	HandleRequest(*model.GithubWebhookRequest) error
 }
 
 type githubService struct {
@@ -24,19 +24,7 @@ func NewGithubWebhookService(cfg *GithubWebhookServiceConfig) GithubWebhookServi
 	return &githubService{config: cfg}
 }
 
-type GithubWebhookRequest struct {
-	Ref        string `json:"ref"`
-	Repository struct {
-		ID    int    `json:"id"`
-		Name  string `json:"name"`
-		Owner struct {
-			Name      string `json:"login"`
-			AvatarURL string `json:"avatar_url"`
-		} `json:"owner"`
-	} `json:"repository"`
-}
-
-func (g *githubService) HandleRequest(req GithubWebhookRequest) error {
+func (g *githubService) HandleRequest(req *model.GithubWebhookRequest) error {
 	// update the repository to reflect any changes
 	if err := g.config.repoService.UpdateRepository(&model.Repository{
 		ID:        req.Repository.ID,
