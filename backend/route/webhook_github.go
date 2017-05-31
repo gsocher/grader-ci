@@ -13,9 +13,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func RegisterGithubWebhookRoutes(router *mux.Router, run service.BuildRunner, rep service.RepositoryService, bind service.TestBindService) {
+func RegisterGithubWebhookRoutes(router *mux.Router, msg service.BuildMessageService, rep service.RepositoryService, bind service.TestBindService) {
 	router.HandleFunc(pathURLGithubWebhookAPI,
-		parseWebhookHTTPHandler(run, rep, bind)).Methods("POST")
+		parseWebhookHTTPHandler(msg, rep, bind)).Methods("POST")
 }
 
 type githubWebhookRequest struct {
@@ -31,7 +31,7 @@ type githubWebhookRequest struct {
 }
 
 // parseWebhookHTTPHandler is an endpoint for receiving github webhook requests.
-func parseWebhookHTTPHandler(run service.BuildRunner, rep service.RepositoryService, bind service.TestBindService) func(rw http.ResponseWriter, req *http.Request) {
+func parseWebhookHTTPHandler(msg service.BuildMessageService, rep service.RepositoryService, bind service.TestBindService) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
@@ -81,20 +81,12 @@ func parseWebhookHTTPHandler(run service.BuildRunner, rep service.RepositoryServ
 			}
 		}
 
-		status, err := run.RunBuild(m)
-		if err != nil {
+		if err = msg.SendBuild(m); err != nil {
 			logrus.WithError(err).WithField("req", string(body)).Errorf("Failed to start build")
 			writeError(rw, http.StatusInternalServerError, err)
 			return
 		}
 
-		bytes, err := json.Marshal(status)
-		if err != nil {
-			logrus.WithField("req", string(body)).WithError(err).Errorf("Failed to marshal build status")
-			writeError(rw, http.StatusInternalServerError, err)
-			return
-		}
-
-		writeOk(rw, bytes)
+		writeOk(rw, nil)
 	}
 }

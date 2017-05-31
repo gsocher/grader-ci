@@ -23,9 +23,9 @@ func main() {
 	build, _ := service.NewSQLiteBuildService(db)
 	rep, _ := service.NewSQLiteRepositoryService(db)
 	bind, _ := service.NewSQLiteTestBindService(db)
-	run, _ := service.NewAMQPBuildRunner(amqp, build)
+	msg, _ := service.NewAMQPBuildMessageService(amqp, build)
 
-	serv, err := backend.New(build, run, rep, bind)
+	serv, err := backend.New(build, msg, rep, bind)
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to start server")
 	}

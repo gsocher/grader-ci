@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 
@@ -9,23 +8,23 @@ import (
 )
 
 type GithubWebhookService interface {
-	HandleRequest(body []byte) error
+	HandleRequest(GithubWebhookRequest) error
 }
 
 type githubService struct {
-	config GithubWebhookServiceConfig
+	config *GithubWebhookServiceConfig
 }
 
 type GithubWebhookServiceConfig struct {
-	repoService   RepositoryService
-	runnerService BuildRunner
+	repoService RepositoryService
+	msgService  BuildMessageService
 }
 
-func NewGithubWebhookService() GithubWebhookService {
-	return &githubService{}
+func NewGithubWebhookService(cfg *GithubWebhookServiceConfig) GithubWebhookService {
+	return &githubService{config: cfg}
 }
 
-type githubWebhookRequest struct {
+type GithubWebhookRequest struct {
 	Ref        string `json:"ref"`
 	Repository struct {
 		ID    int    `json:"id"`
@@ -37,12 +36,7 @@ type githubWebhookRequest struct {
 	} `json:"repository"`
 }
 
-func (g *githubService) HandleRequest(body []byte) error {
-	var req githubWebhookRequest
-	if err := json.Unmarshal(body, &req); err != nil {
-		return fmt.Errorf("failed to unmarshal: %v", err)
-	}
-
+func (g *githubService) HandleRequest(req GithubWebhookRequest) error {
 	// update the repository to reflect any changes
 	if err := g.config.repoService.UpdateRepository(&model.Repository{
 		ID:        req.Repository.ID,
@@ -54,12 +48,10 @@ func (g *githubService) HandleRequest(body []byte) error {
 	}
 
 	// notify the build runner to trigger a build
-	_, err := g.config.runnerService.RunBuild(&model.BuildStatus{
+	return g.config.msgService.SendBuild(&model.BuildStatus{
 		Source: &model.RepositoryMetadata{
 			ID:       req.Repository.ID,
 			Branch:   filepath.Base(req.Ref),
 			CloneURL: fmt.Sprintf("https://github.com/%s/%s", req.Repository.Owner.Name, req.Repository.Name),
 		}})
-
-	return err
 }
