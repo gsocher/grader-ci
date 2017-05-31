@@ -29,11 +29,16 @@ func main() {
 		MsgService:  msg,
 	})
 
-	serv, err := backend.New(build, msg, rep, bind, github)
-	if err != nil {
-		logrus.WithError(err).Fatalf("Failed to start server")
-	}
-	serv.Serve()
+	server, err := backend.New(&backend.ServerConfig{
+		BuildMessageService:  msg,
+		BuildService:         build,
+		RepositoryService:    rep,
+		TestBindService:      bind,
+		GithubWebhookService: github,
+	})
+	must(err, "Failed to create server")
+
+	server.Run()
 }
 
 func must(err error, msg string) {

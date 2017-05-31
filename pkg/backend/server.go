@@ -9,7 +9,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type Server struct {
+type Server interface {
+	Run()
+}
+
+type server struct {
+	config *ServerConfig
+}
+
+type ServerConfig struct {
 	Router               *mux.Router
 	BuildService         service.BuildService
 	BuildMessageService  service.BuildMessageService
@@ -19,15 +27,12 @@ type Server struct {
 }
 
 // New initializes a server with its dependencies and registers its routes.
-func New(build service.BuildService, msg service.BuildMessageService, rep service.RepositoryService, bind service.TestBindService, github service.GithubWebhookService) (*Server, error) {
-	s := &Server{
-		Router:               mux.NewRouter(),
-		BuildService:         build,
-		RepositoryService:    rep,
-		BuildMessageService:  msg,
-		TestBindService:      bind,
-		GithubWebhookService: github,
+func New(config *ServerConfig) (Server, error) {
+	if config.Router == nil {
+		config.Router = mux.NewRouter()
 	}
+
+	s := &server{config: config}
 
 	// register routes
 	s.registerRoutes()
@@ -35,30 +40,30 @@ func New(build service.BuildService, msg service.BuildMessageService, rep servic
 	return s, nil
 }
 
-func (s *Server) Serve() {
+func (s *server) Run() {
 	serv := &http.Server{
 		Addr:    "localhost:8081",
-		Handler: s.Router,
+		Handler: s.config.Router,
 	}
 
 	logrus.Infof("Starting server on %v", serv.Addr)
-	go s.BuildMessageService.ListenForBuildMessages()
+	go s.config.BuildMessageService.ListenForBuildMessages()
 
 	logrus.Fatalf("Server shut down: %v\n", serv.ListenAndServe())
 }
 
-func (s *Server) registerRoutes() {
+func (s *server) registerRoutes() {
 	// api routes
-	route.RegisterGithubWebhookRoutes(s.Router, s.GithubWebhookService)
-	route.RegisterBuildAPIRoutes(s.Router, s.BuildService)
-	route.RegisterRepositoryAPIRoutes(s.Router, s.RepositoryService)
-	route.RegisterBindAPIRoutes(s.Router, s.TestBindService)
+	route.RegisterGithubWebhookRoutes(s.config.Router, s.config.GithubWebhookService)
+	route.RegisterBuildAPIRoutes(s.config.Router, s.config.BuildService)
+	route.RegisterRepositoryAPIRoutes(s.config.Router, s.config.RepositoryService)
+	route.RegisterBindAPIRoutes(s.config.Router, s.config.TestBindService)
 
 	// frontend routes
-	route.RegisterRepositoryFrontendRoutes(s.Router, s.RepositoryService)
-	route.RegisterBuildFrontendRoutes(s.Router, s.BuildService, s.RepositoryService)
-	route.RegisterBindFrontendRoutes(s.Router, s.TestBindService)
+	route.RegisterRepositoryFrontendRoutes(s.config.Router, s.config.RepositoryService)
+	route.RegisterBuildFrontendRoutes(s.config.Router, s.config.BuildService, s.config.RepositoryService)
+	route.RegisterBindFrontendRoutes(s.config.Router, s.config.TestBindService)
 
 	// assets route
-	route.RegisterAssetsRoute(s.Router)
+	route.RegisterAssetsRoute(s.config.Router)
 }

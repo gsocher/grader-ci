@@ -18,10 +18,7 @@ func TestGithubWebhook(t *testing.T) {
 	fakeGithubWebhookService := new(fakes.FakeGithubWebhookService)
 	RegisterGithubWebhookRoutes(router, fakeGithubWebhookService)
 
-	serv := httptest.NewServer(router)
-	defer serv.Close()
 	resp := httptest.NewRecorder()
-
 	webhook := createFakeGithubWebhookRequest()
 	b, _ := json.Marshal(webhook)
 	req, _ := http.NewRequest("POST", pathURLGithubWebhookAPI, bytes.NewBuffer(b))
